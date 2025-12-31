@@ -1,4 +1,5 @@
 import { BillingProvider, useBilling } from '@/contexts/BillingContext';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
 import { HomeView } from '@/components/views/HomeView';
@@ -9,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 
 const MainContent = () => {
   const { currentView, isLoading } = useBilling();
+  const { settings } = useAppSettings();
 
   if (isLoading) {
     return (
@@ -18,12 +20,18 @@ const MainContent = () => {
     );
   }
 
+  // Check if the view is visible in settings
+  const isViewVisible = (viewId: string) => {
+    const btn = settings.navButtons.find(b => b.id === viewId);
+    return btn?.visible !== false;
+  };
+
   return (
     <>
       {currentView === 'home' && <HomeView />}
-      {currentView === 'outpatient' && <OutpatientView />}
-      {currentView === 'inpatient' && <InpatientView />}
-      {currentView === 'pricing' && <PricingView />}
+      {currentView === 'outpatient' && isViewVisible('outpatient') && <OutpatientView />}
+      {currentView === 'inpatient' && isViewVisible('inpatient') && <InpatientView />}
+      {currentView === 'pricing' && isViewVisible('pricing') && <PricingView />}
     </>
   );
 };
