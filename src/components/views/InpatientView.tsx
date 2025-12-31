@@ -66,7 +66,93 @@ export const InpatientView = () => {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+      {/* Mobile: Show content first, then statement */}
+      <div className="lg:hidden">
+        {/* Admission Card */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-md">
+          <h5 className="text-xs font-black text-primary uppercase tracking-wide mb-3 flex items-center gap-2">
+            <UserCircle className="w-4 h-4" />
+            ADMISSION
+          </h5>
+          <input
+            type="text"
+            value={patientName}
+            onChange={(e) => setPatientName(e.target.value)}
+            placeholder="Patient Name (Required)"
+            className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+          />
+        </div>
+
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {inpatientCategories.map((cat, idx) => (
+              <CategoryCard
+                key={cat}
+                name={cat}
+                count={inventory[cat]?.length || 0}
+                isActive={currentCatIPIdx === idx}
+                onClick={() => handleCategorySelect(idx)}
+              />
+            ))}
+          </div>
+        ) : (
+          <>
+            <CategoryCarousel
+              categoryName={currentCategory}
+              itemCount={items.length}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onGridView={() => setViewMode('grid')}
+            />
+
+            {selectedItem && (
+              <DosagePanel
+                item={selectedItem}
+                category={currentCategory}
+                onClose={() => setSelectedItem(null)}
+                onAddToBill={handleAddToBill}
+              />
+            )}
+
+            {showMedicineTags && (
+              <MedicineTags bill={bill} onRemove={handleRemoveMedicine} />
+            )}
+
+            <div className="bg-input border border-border rounded-2xl px-5 py-4 flex items-center gap-4 mb-6 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-card">
+              <Search className="w-5 h-5 text-primary opacity-80" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search service codes..."
+                className="bg-transparent border-none text-foreground w-full outline-none text-base font-semibold placeholder:text-muted-foreground placeholder:font-medium"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 mb-6">
+              {items.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground opacity-60 font-semibold">
+                  NO MATCHES
+                </div>
+              ) : (
+                items.map((item) => (
+                  <ItemEntry
+                    key={item.id}
+                    item={item}
+                    category={currentCategory}
+                    onClick={() => setSelectedItem(item)}
+                  />
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        <StatementSidebar title="Record" prefix="ip" />
+      </div>
+
+      {/* Desktop: Side by side layout */}
+      <div className="hidden lg:grid lg:grid-cols-[1fr_380px] gap-8">
         <div>
           {/* Admission Card */}
           <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-md">
