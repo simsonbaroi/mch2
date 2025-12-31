@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, PlusCircle, FlaskConical } from 'lucide-react';
 import { InventoryItem } from '@/types/billing';
 import { toast } from 'sonner';
+import { validateQuantity, validateDays, validateServiceQty } from '@/lib/validation';
 
 interface DosagePanelProps {
   item: InventoryItem | null;
@@ -16,6 +17,7 @@ export const DosagePanel = ({ item, category, onClose, onAddToBill }: DosagePane
   const [doseFreq, setDoseFreq] = useState('3');
   const [doseDays, setDoseDays] = useState('7');
   const [serviceQty, setServiceQty] = useState('1');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isMedicine = category === 'Medicine' || category === 'Discharge Medicine' ||
     ['Injection', 'Tablet', 'Capsule', 'Syrup'].includes(item?.type || '');
@@ -27,29 +29,78 @@ export const DosagePanel = ({ item, category, onClose, onAddToBill }: DosagePane
       setDoseFreq('3');
       setDoseDays('7');
       setServiceQty('1');
+      setErrors({});
     }
   }, [item]);
 
   if (!item) return null;
 
-  const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^\d.]/g, '') || '0');
+  // Safely parse price with validation
+  const rawPrice = item.price;
+  const price = typeof rawPrice === 'number' && !isNaN(rawPrice) && rawPrice >= 0 
+    ? rawPrice 
+    : 0;
 
   const calculateTotal = () => {
     if (isMedicine) {
-      const qty = parseFloat(doseQty) || 0;
-      const freq = parseFloat(doseFreq) || 0;
-      const days = parseInt(doseDays) || 0;
-      return qty * freq * days * price;
+      const qtyResult = validateQuantity(doseQty);
+      const daysResult = validateDays(doseDays);
+      const freq = parseInt(doseFreq) || 0;
+      
+      if (!qtyResult.valid || !daysResult.valid) return 0;
+      
+      return (qtyResult.value || 0) * freq * (daysResult.value || 0) * price;
     }
-    return (parseFloat(serviceQty) || 1) * price;
+    
+    const serviceResult = validateServiceQty(serviceQty);
+    if (!serviceResult.valid) return 0;
+    
+    return (serviceResult.value || 1) * price;
   };
 
-  const totalQty = isMedicine
-    ? (parseFloat(doseQty) || 0) * (parseFloat(doseFreq) || 0) * (parseInt(doseDays) || 0)
-    : parseFloat(serviceQty) || 1;
+  const getTotalQty = () => {
+    if (isMedicine) {
+      const qtyResult = validateQuantity(doseQty);
+      const daysResult = validateDays(doseDays);
+      const freq = parseInt(doseFreq) || 0;
+      
+      if (!qtyResult.valid || !daysResult.valid) return 0;
+      
+      return (qtyResult.value || 0) * freq * (daysResult.value || 0);
+    }
+    
+    const serviceResult = validateServiceQty(serviceQty);
+    return serviceResult.valid ? (serviceResult.value || 1) : 0;
+  };
 
   const handleAdd = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (isMedicine) {
+      const qtyResult = validateQuantity(doseQty);
+      const daysResult = validateDays(doseDays);
+      
+      if (!qtyResult.valid) newErrors.doseQty = qtyResult.error || 'Invalid';
+      if (!daysResult.valid) newErrors.doseDays = daysResult.error || 'Invalid';
+    } else {
+      const serviceResult = validateServiceQty(serviceQty);
+      if (!serviceResult.valid) newErrors.serviceQty = serviceResult.error || 'Invalid';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix validation errors');
+      return;
+    }
+    
     const subtotal = calculateTotal();
+    const totalQty = getTotalQty();
+    
+    if (subtotal <= 0 || totalQty <= 0) {
+      toast.error('Invalid calculation - please check values');
+      return;
+    }
+    
     onAddToBill({ ...item, category }, totalQty, subtotal);
     toast.success('Added to statement', {
       className: 'bg-card border-border text-foreground',
@@ -79,10 +130,14 @@ export const DosagePanel = ({ item, category, onClose, onAddToBill }: DosagePane
             <input
               type="text"
               value={doseQty}
-              onChange={(e) => setDoseQty(e.target.value)}
-              className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20"
+              onChange={(e) => {
+                setDoseQty(e.target.value);
+                setErrors(prev => ({ ...prev, doseQty: '' }));
+              }}
+              className={`bg-input border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20 ${errors.doseQty ? 'border-destructive' : 'border-border'}`}
               placeholder="1.0"
             />
+            {errors.doseQty && <span className="text-xs text-destructive">{errors.doseQty}</span>}
           </div>
           
           <div className="flex flex-col gap-2">
@@ -124,10 +179,15 @@ export const DosagePanel = ({ item, category, onClose, onAddToBill }: DosagePane
             <input
               type="number"
               value={doseDays}
-              onChange={(e) => setDoseDays(e.target.value)}
+              onChange={(e) => {
+                setDoseDays(e.target.value);
+                setErrors(prev => ({ ...prev, doseDays: '' }));
+              }}
               min="1"
-              className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20"
+              max="365"
+              className={`bg-input border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20 ${errors.doseDays ? 'border-destructive' : 'border-border'}`}
             />
+            {errors.doseDays && <span className="text-xs text-destructive">{errors.doseDays}</span>}
           </div>
         </div>
       ) : (
@@ -139,10 +199,15 @@ export const DosagePanel = ({ item, category, onClose, onAddToBill }: DosagePane
             <input
               type="number"
               value={serviceQty}
-              onChange={(e) => setServiceQty(e.target.value)}
+              onChange={(e) => {
+                setServiceQty(e.target.value);
+                setErrors(prev => ({ ...prev, serviceQty: '' }));
+              }}
               min="1"
-              className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20"
+              max="100"
+              className={`bg-input border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light focus:ring-2 focus:ring-primary/20 ${errors.serviceQty ? 'border-destructive' : 'border-border'}`}
             />
+            {errors.serviceQty && <span className="text-xs text-destructive">{errors.serviceQty}</span>}
           </div>
         </div>
       )}
