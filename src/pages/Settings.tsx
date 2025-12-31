@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -40,10 +40,12 @@ import {
   Moon,
   Sun,
   Clock,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { useAppSettings, NavButtonConfig } from '@/contexts/AppSettingsContext';
 import { BillingProvider, useBilling } from '@/contexts/BillingContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -200,6 +202,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { settings, updateSettings, updateNavButton, resetSettings } = useAppSettings();
   const { inventory } = useBilling();
+  const { user, isLoading } = useAuthContext();
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +217,25 @@ const SettingsPage = () => {
       enabled: true
     }));
   });
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   // Extended color settings
   const [colorSettings, setColorSettings] = useState({
