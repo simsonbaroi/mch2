@@ -659,11 +659,11 @@ const SettingsPage = () => {
   );
 };
 
-// Wrap with BillingProvider
-const SettingsPageWrapper = () => (
-  <BillingProvider>
-    <SettingsPage />
-  </BillingProvider>
-);
-
-export default SettingsPageWrapper;
+// Wrap with BillingProvider so useBilling hook works
+export default function Settings() {
+  return (
+    <BillingProvider>
+      <SettingsPage />
+    </BillingProvider>
+  );
+}
