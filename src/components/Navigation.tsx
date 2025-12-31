@@ -1,8 +1,9 @@
-import { Home, UserCheck, BedDouble, Tags } from 'lucide-react';
+import { Home, UserCheck, BedDouble, Tags, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBilling } from '@/contexts/BillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { ViewType } from '@/types/billing';
 import { cn } from '@/lib/utils';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
 
 const iconMap: Record<string, React.ReactNode> = {
   Home: <Home className="w-5 h-5" />,
@@ -16,10 +17,33 @@ export const Navigation = () => {
   const { settings } = useAppSettings();
 
   const visibleButtons = settings.navButtons.filter(btn => btn.visible);
+  
+  // Get current view index
+  const currentIndex = visibleButtons.findIndex(btn => btn.id === currentView);
+  
+  // Touch gesture navigation
+  const navigateToNext = () => {
+    if (currentIndex < visibleButtons.length - 1) {
+      setCurrentView(visibleButtons[currentIndex + 1].id as ViewType);
+    }
+  };
+
+  const navigateToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentView(visibleButtons[currentIndex - 1].id as ViewType);
+    }
+  };
+
+  const { touchHandlers } = useTouchGestures({
+    onSwipeLeft: navigateToNext,
+    onSwipeRight: navigateToPrev,
+    threshold: 50,
+  });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 mb-6">
-      <nav className="bg-secondary/50 p-1.5 rounded-2xl border border-border flex gap-1.5">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 mb-4 sm:mb-6" {...touchHandlers}>
+      {/* Desktop Navigation */}
+      <nav className="hidden sm:flex bg-secondary/50 p-1.5 rounded-2xl border border-border gap-1.5">
         {visibleButtons.map((item) => (
           <button
             key={item.id}
@@ -32,10 +56,60 @@ export const Navigation = () => {
             )}
           >
             {iconMap[item.icon] || <Home className="w-5 h-5" />}
-            <span className="hidden sm:inline">{item.label}</span>
+            <span className="hidden md:inline">{item.label}</span>
           </button>
         ))}
       </nav>
+
+      {/* Mobile Navigation - Swipeable */}
+      <div className="sm:hidden">
+        <div className="bg-secondary/50 p-1 rounded-xl border border-border flex items-center gap-1">
+          {/* Previous Button */}
+          <button
+            onClick={navigateToPrev}
+            disabled={currentIndex <= 0}
+            className="p-2 rounded-lg text-muted-foreground disabled:opacity-30 transition-all active:scale-95"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          {/* Current View Indicator */}
+          <div className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-primary text-primary-foreground rounded-lg font-bold text-xs uppercase">
+            {iconMap[visibleButtons[currentIndex]?.icon] || <Home className="w-5 h-5" />}
+            <span>{visibleButtons[currentIndex]?.label || 'Home'}</span>
+          </div>
+          
+          {/* Next Button */}
+          <button
+            onClick={navigateToNext}
+            disabled={currentIndex >= visibleButtons.length - 1}
+            className="p-2 rounded-lg text-muted-foreground disabled:opacity-30 transition-all active:scale-95"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Page Indicators */}
+        <div className="flex justify-center gap-1.5 mt-2">
+          {visibleButtons.map((item, idx) => (
+            <button
+              key={item.id}
+              onClick={() => setCurrentView(item.id as ViewType)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all",
+                currentIndex === idx
+                  ? "bg-primary w-4"
+                  : "bg-muted-foreground/30"
+              )}
+            />
+          ))}
+        </div>
+        
+        {/* Swipe Hint */}
+        <p className="text-center text-xs text-muted-foreground mt-1 opacity-60">
+          Swipe left/right to navigate
+        </p>
+      </div>
     </div>
   );
 };
