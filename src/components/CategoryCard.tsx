@@ -17,7 +17,7 @@ export const CategoryCard = ({ name, count, isActive, onClick }: CategoryCardPro
         isActive && "bg-primary/10 border-primary border-b-[3px]"
       )}
     >
-      <span className="block font-extrabold text-foreground text-sm tracking-tight">
+      <span className="block font-extrabold text-card-foreground text-sm tracking-tight">
         {name}
       </span>
       <span className="block text-xs text-muted-foreground font-semibold mt-2 uppercase">
