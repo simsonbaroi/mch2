@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { secureStorage, resetSessionTimeout } from '@/lib/crypto';
 
 export interface NavButtonConfig {
   id: string;
@@ -58,13 +59,41 @@ export const useAppSettings = () => {
 };
 
 export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('appSettings');
-    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-  });
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  // Load encrypted settings on mount
   useEffect(() => {
-    localStorage.setItem('appSettings', JSON.stringify(settings));
+    const loadSettings = async () => {
+      try {
+        const saved = await secureStorage.getItem('appSettings');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setSettings({ ...defaultSettings, ...parsed });
+        }
+      } catch {
+        // Use defaults if loading fails
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Save encrypted settings when changed
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    const saveSettings = async () => {
+      try {
+        await secureStorage.setItem('appSettings', JSON.stringify(settings));
+        // Reset session timeout on activity
+        resetSessionTimeout();
+      } catch {
+        // Silent fail - settings will be lost on refresh
+      }
+    };
+    saveSettings();
     
     // Apply CSS variables
     const root = document.documentElement;
@@ -91,7 +120,7 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [settings]);
+  }, [settings, isLoaded]);
 
   const updateSettings = (updates: Partial<AppSettings>) => {
     setSettings(prev => ({ ...prev, ...updates }));

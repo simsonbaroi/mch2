@@ -4,6 +4,7 @@ import { useBilling } from '@/contexts/BillingContext';
 import { InventoryItem } from '@/types/billing';
 import { ItemEntry } from '@/components/ItemEntry';
 import { toast } from 'sonner';
+import { validatePrice, validateItemName, validateInventoryImport } from '@/lib/validation';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ export const PricingView = () => {
   const [formCategory, setFormCategory] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formType, setFormType] = useState('Medicine');
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const allCategories = [...new Set([...outpatientCategories, ...inpatientCategories])].sort();
 
@@ -44,6 +46,7 @@ export const PricingView = () => {
     setFormCategory(allCategories[0] || 'Medicine');
     setFormPrice('');
     setFormType('Medicine');
+    setFormErrors({});
     setIsModalOpen(true);
   };
 
@@ -53,16 +56,33 @@ export const PricingView = () => {
     setFormCategory(item.category || 'Medicine');
     setFormPrice(String(item.price).replace(/[^\d.]/g, ''));
     setFormType(item.type || 'Medicine');
+    setFormErrors({});
     setIsModalOpen(true);
   };
 
   const handleSave = () => {
-    if (!formName.trim() || isNaN(parseFloat(formPrice)) || parseFloat(formPrice) < 0) {
-      toast.error('Please provide a valid name and price');
+    const errors: Record<string, string> = {};
+    
+    // Validate name
+    const nameResult = validateItemName(formName);
+    if (!nameResult.valid) {
+      errors.name = nameResult.error || 'Invalid name';
+    }
+    
+    // Validate price
+    const priceResult = validatePrice(formPrice);
+    if (!priceResult.valid) {
+      errors.price = priceResult.error || 'Invalid price';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Please fix validation errors');
       return;
     }
 
     const newInventory = { ...inventory };
+    const validatedPrice = priceResult.value || 0;
 
     if (editingItem) {
       // Editing existing item
@@ -84,9 +104,9 @@ export const PricingView = () => {
       const existingIndex = newInventory[formCategory].findIndex((i) => i.id === editingItem.id);
       const updatedItem: InventoryItem = {
         ...editingItem,
-        name: formName,
+        name: nameResult.value || formName.trim(),
         category: formCategory,
-        price: parseFloat(formPrice),
+        price: validatedPrice,
         type: formType,
       };
 
@@ -105,8 +125,8 @@ export const PricingView = () => {
 
       const newItem: InventoryItem = {
         id: nextItemId,
-        name: formName,
-        price: parseFloat(formPrice),
+        name: nameResult.value || formName.trim(),
+        price: validatedPrice,
         type: formType,
         category: formCategory,
       };
@@ -158,14 +178,18 @@ export const PricingView = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const data: InventoryItem[] = JSON.parse(event.target?.result as string);
-
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid format');
+        const rawData = JSON.parse(event.target?.result as string);
+        
+        // Validate imported data structure
+        const validationResult = validateInventoryImport(rawData);
+        if (!validationResult.valid) {
+          toast.error(validationResult.error || 'Invalid data format');
+          return;
         }
 
         if (!confirm('This will REPLACE your current database. Continue?')) return;
 
+        const data = validationResult.data!;
         const newInventory: Record<string, InventoryItem[]> = {};
         let maxId = 0;
 
@@ -173,14 +197,20 @@ export const PricingView = () => {
           const cat = item.category || 'General';
           if (!newInventory[cat]) newInventory[cat] = [];
           if (item.id > maxId) maxId = item.id;
-          newInventory[cat].push(item);
+          newInventory[cat].push({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            type: item.type,
+            category: cat,
+          });
         });
 
         setInventory(newInventory);
         setNextItemId(maxId + 1);
         toast.success('Database imported');
       } catch {
-        toast.error('Failed to import: Invalid JSON');
+        toast.error('Failed to import: Invalid JSON format');
       }
     };
     reader.readAsText(file);
@@ -268,10 +298,15 @@ export const PricingView = () => {
               <input
                 type="text"
                 value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light"
+                onChange={(e) => {
+                  setFormName(e.target.value);
+                  setFormErrors(prev => ({ ...prev, name: '' }));
+                }}
+                className={`bg-input border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light ${formErrors.name ? 'border-destructive' : 'border-border'}`}
                 placeholder="Enter item name"
+                maxLength={200}
               />
+              {formErrors.name && <span className="text-xs text-destructive mt-1">{formErrors.name}</span>}
             </div>
 
             <div>
@@ -298,15 +333,18 @@ export const PricingView = () => {
               <input
                 type="number"
                 value={formPrice}
-                onChange={(e) => setFormPrice(e.target.value)}
+                onChange={(e) => {
+                  setFormPrice(e.target.value);
+                  setFormErrors(prev => ({ ...prev, price: '' }));
+                }}
                 min="0"
+                max="10000000"
                 step="0.01"
-                className="bg-input border border-border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light"
+                className={`bg-input border text-foreground px-4 py-3 rounded-lg w-full outline-none font-semibold text-sm transition-all focus:border-primary focus:bg-surface-light ${formErrors.price ? 'border-destructive' : 'border-border'}`}
                 placeholder="0.00"
               />
+              {formErrors.price && <span className="text-xs text-destructive mt-1">{formErrors.price}</span>}
             </div>
-
-            <div>
               <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block mb-2">
                 Type
               </label>
