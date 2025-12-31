@@ -345,6 +345,8 @@ export const PricingView = () => {
               />
               {formErrors.price && <span className="text-xs text-destructive mt-1">{formErrors.price}</span>}
             </div>
+
+            <div>
               <label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block mb-2">
                 Type
               </label>
