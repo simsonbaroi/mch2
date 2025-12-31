@@ -190,12 +190,12 @@ export const PricingView = () => {
           </div>
         </div>
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {canEdit() && (
             <button
               onClick={openAddModal}
               disabled={isSyncing}
-              className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
+              className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
             >
               <Plus className="w-6 h-6" />
               ADD NEW
@@ -204,13 +204,13 @@ export const PricingView = () => {
           <button
             onClick={handleExport}
             disabled={isSyncing}
-            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
+            className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
           >
             <Download className="w-6 h-6" />
             EXPORT
           </button>
           {canEdit() && (
-            <label className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md">
+            <label className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md min-h-[90px]">
               <Upload className="w-6 h-6" />
               IMPORT
               <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={isSyncing} />
@@ -220,14 +220,14 @@ export const PricingView = () => {
             <button
               onClick={handleSeedFromJson}
               disabled={isSyncing}
-              className="bg-accent text-accent-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
+              className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
             >
               {isSyncing ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw className="w-6 h-6" />}
               SEED DATA
             </button>
           )}
           {!canEdit() && (
-            <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 rounded-2xl px-5 py-4">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground bg-muted/50 rounded-2xl px-4 py-4 min-h-[90px]">
               <Lock className="w-5 h-5" />
               <span className="text-xs font-bold uppercase">View Only</span>
             </div>
