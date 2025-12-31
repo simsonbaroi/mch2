@@ -96,16 +96,13 @@ export const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Controls */}
+        {/* Mobile Controls - Just Settings Icon */}
         <div className="flex md:hidden items-center gap-2">
-          <div className="text-primary font-mono font-bold text-sm">
-            {time}
-          </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="bg-surface-light border border-border w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground"
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
           </button>
         </div>
       </div>

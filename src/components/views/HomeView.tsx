@@ -1,4 +1,4 @@
-import { ShieldCheck, UserCheck, BedDouble, ChevronRight } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useBilling } from '@/contexts/BillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 
@@ -21,38 +21,24 @@ export const HomeView = () => {
       </h2>
       
       <p className="text-base sm:text-lg text-muted-foreground max-w-md text-center font-semibold mb-8 sm:mb-10 px-4">
-        Authorized Revenue Management Terminal.
+        Centralized Hospital Revenue Cycle Management Terminal.
       </p>
       
       <div className="flex flex-col gap-3 w-full max-w-sm px-4 sm:px-0">
         <button
           onClick={() => setCurrentView('outpatient')}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold rounded-xl px-6 py-4 text-sm uppercase tracking-wide transition-all duration-200 active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30 flex items-center justify-between gap-3"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold rounded-xl px-6 py-4 text-sm uppercase tracking-wide transition-all duration-200 active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-3"
         >
-          <div className="flex items-center gap-3">
-            <UserCheck className="w-5 h-5" />
-            {settings.navButtons.find(b => b.id === 'outpatient')?.label || 'OUTPATIENT'}
-          </div>
-          <ChevronRight className="w-5 h-5 opacity-60" />
+          {settings.navButtons.find(b => b.id === 'outpatient')?.label || 'OUTPATIENT TERMINAL'}
         </button>
         
         <button
           onClick={() => setCurrentView('inpatient')}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold rounded-xl px-6 py-4 text-sm uppercase tracking-wide transition-all duration-200 active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30 flex items-center justify-between gap-3"
+          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-extrabold rounded-xl px-6 py-4 text-sm uppercase tracking-wide transition-all duration-200 active:scale-[0.98] hover:shadow-lg hover:shadow-accent/30 flex items-center justify-center gap-3"
         >
-          <div className="flex items-center gap-3">
-            <BedDouble className="w-5 h-5" />
-            {settings.navButtons.find(b => b.id === 'inpatient')?.label || 'INPATIENT'}
-          </div>
-          <ChevronRight className="w-5 h-5 opacity-60" />
+          {settings.navButtons.find(b => b.id === 'inpatient')?.label || 'INPATIENT CARE'}
         </button>
       </div>
-      
-      {/* Swipe hint for mobile */}
-      <p className="sm:hidden text-xs text-muted-foreground mt-6 opacity-60 flex items-center gap-1">
-        <ChevronRight className="w-4 h-4" />
-        Swipe to navigate between views
-      </p>
     </div>
   );
 };

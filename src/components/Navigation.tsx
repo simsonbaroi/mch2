@@ -1,9 +1,10 @@
-import { Home, UserCheck, BedDouble, Tags, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, UserCheck, BedDouble, Tags } from 'lucide-react';
 import { useBilling } from '@/contexts/BillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { ViewType } from '@/types/billing';
 import { cn } from '@/lib/utils';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
+import { useClock } from '@/hooks/useClock';
 
 const iconMap: Record<string, React.ReactNode> = {
   Home: <Home className="w-5 h-5" />,
@@ -15,6 +16,7 @@ const iconMap: Record<string, React.ReactNode> = {
 export const Navigation = () => {
   const { currentView, setCurrentView } = useBilling();
   const { settings } = useAppSettings();
+  const time = useClock();
 
   const visibleButtons = settings.navButtons.filter(btn => btn.visible);
   
@@ -61,54 +63,30 @@ export const Navigation = () => {
         ))}
       </nav>
 
-      {/* Mobile Navigation - Swipeable */}
-      <div className="sm:hidden">
-        <div className="bg-secondary/50 p-1 rounded-xl border border-border flex items-center gap-1">
-          {/* Previous Button */}
+      {/* Mobile Navigation - Horizontal Tabs like design */}
+      <nav className="sm:hidden flex bg-secondary/50 p-1 rounded-xl border border-border gap-0.5" {...touchHandlers}>
+        {visibleButtons.map((item) => (
           <button
-            onClick={navigateToPrev}
-            disabled={currentIndex <= 0}
-            className="p-2 rounded-lg text-muted-foreground disabled:opacity-30 transition-all active:scale-95"
+            key={item.id}
+            onClick={() => setCurrentView(item.id as ViewType)}
+            className={cn(
+              "flex-1 py-2.5 px-2 rounded-lg border-none font-bold text-[10px] cursor-pointer flex flex-col items-center justify-center gap-1 transition-all duration-200 uppercase",
+              currentView === item.id
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-transparent text-muted-foreground active:bg-surface-light"
+            )}
           >
-            <ChevronLeft className="w-5 h-5" />
+            {iconMap[item.icon] || <Home className="w-4 h-4" />}
+            <span className="truncate">{item.label}</span>
           </button>
-          
-          {/* Current View Indicator */}
-          <div className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-primary text-primary-foreground rounded-lg font-bold text-xs uppercase">
-            {iconMap[visibleButtons[currentIndex]?.icon] || <Home className="w-5 h-5" />}
-            <span>{visibleButtons[currentIndex]?.label || 'Home'}</span>
-          </div>
-          
-          {/* Next Button */}
-          <button
-            onClick={navigateToNext}
-            disabled={currentIndex >= visibleButtons.length - 1}
-            className="p-2 rounded-lg text-muted-foreground disabled:opacity-30 transition-all active:scale-95"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Page Indicators */}
-        <div className="flex justify-center gap-1.5 mt-2">
-          {visibleButtons.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => setCurrentView(item.id as ViewType)}
-              className={cn(
-                "w-2 h-2 rounded-full transition-all",
-                currentIndex === idx
-                  ? "bg-primary w-4"
-                  : "bg-muted-foreground/30"
-              )}
-            />
-          ))}
-        </div>
-        
-        {/* Swipe Hint */}
-        <p className="text-center text-xs text-muted-foreground mt-1 opacity-60">
-          Swipe left/right to navigate
-        </p>
+        ))}
+      </nav>
+      
+      {/* Mobile Clock - Below Navigation */}
+      <div className="sm:hidden flex justify-end mt-2 px-1">
+        <span className="text-primary font-mono font-bold text-sm">
+          {time}
+        </span>
       </div>
     </div>
   );
