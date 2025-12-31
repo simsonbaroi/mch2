@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { InventoryItem, BillItem, ViewType, INPATIENT_CATEGORIES } from '@/types/billing';
+import { useInventory } from '@/hooks/useInventory';
 
 interface BillingContextType {
   inventory: Record<string, InventoryItem[]>;
-  setInventory: React.Dispatch<React.SetStateAction<Record<string, InventoryItem[]>>>;
   bill: BillItem[];
   addToBill: (item: BillItem) => void;
   removeFromBill: (index: number) => void;
@@ -17,8 +17,13 @@ interface BillingContextType {
   currentCatIPIdx: number;
   setCurrentCatIPIdx: (idx: number) => void;
   isLoading: boolean;
-  nextItemId: number;
-  setNextItemId: React.Dispatch<React.SetStateAction<number>>;
+  isSyncing: boolean;
+  addItem: (item: Omit<InventoryItem, 'id'>) => Promise<number | null>;
+  updateItem: (id: number, updates: Partial<InventoryItem>, oldCategory?: string) => Promise<boolean>;
+  deleteItem: (id: number, category: string) => Promise<boolean>;
+  bulkImport: (items: InventoryItem[]) => Promise<boolean>;
+  exportData: () => InventoryItem[];
+  seedFromJson: () => Promise<boolean>;
 }
 
 const BillingContext = createContext<BillingContextType | null>(null);
@@ -32,47 +37,22 @@ export const useBilling = () => {
 };
 
 export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [inventory, setInventory] = useState<Record<string, InventoryItem[]>>({});
+  const {
+    inventory,
+    isLoading,
+    isSyncing,
+    addItem,
+    updateItem,
+    deleteItem,
+    bulkImport,
+    exportData,
+    seedFromJson,
+  } = useInventory();
+
   const [bill, setBill] = useState<BillItem[]>([]);
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [currentCatOPIdx, setCurrentCatOPIdx] = useState(0);
   const [currentCatIPIdx, setCurrentCatIPIdx] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [nextItemId, setNextItemId] = useState(1);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const res = await fetch('/med.json');
-        if (res.ok) {
-          const data: InventoryItem[] = await res.json();
-          const inv: Record<string, InventoryItem[]> = {};
-          let maxId = 0;
-          
-          data.forEach((item) => {
-            const cat = item.category || "General";
-            if (!inv[cat]) inv[cat] = [];
-            inv[cat].push(item);
-            if (item.id > maxId) maxId = item.id;
-          });
-          
-          // Ensure all inpatient categories exist
-          INPATIENT_CATEGORIES.forEach(c => {
-            if (!inv[c]) inv[c] = [];
-          });
-          
-          setInventory(inv);
-          setNextItemId(maxId + 1);
-        }
-      } catch (e) {
-        console.warn("Failed to load initial data:", e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadData();
-  }, []);
 
   const outpatientCategories = Object.keys(inventory).sort();
   const inpatientCategories = INPATIENT_CATEGORIES;
@@ -93,7 +73,6 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <BillingContext.Provider
       value={{
         inventory,
-        setInventory,
         bill,
         addToBill,
         removeFromBill,
@@ -107,8 +86,13 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         currentCatIPIdx,
         setCurrentCatIPIdx,
         isLoading,
-        nextItemId,
-        setNextItemId,
+        isSyncing,
+        addItem,
+        updateItem,
+        deleteItem,
+        bulkImport,
+        exportData,
+        seedFromJson,
       }}
     >
       {children}
