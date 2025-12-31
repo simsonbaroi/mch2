@@ -190,28 +190,28 @@ export const PricingView = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="flex gap-2 w-full">
           {canEdit() && (
             <button
               onClick={openAddModal}
               disabled={isSyncing}
-              className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
+              className="flex-1 bg-primary text-primary-foreground rounded-xl py-3 px-2 flex flex-col items-center justify-center gap-1 font-bold text-[10px] sm:text-xs uppercase transition-all hover:opacity-90 shadow-md disabled:opacity-50"
             >
-              <Plus className="w-6 h-6" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               ADD NEW
             </button>
           )}
           <button
             onClick={handleExport}
             disabled={isSyncing}
-            className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
+            className="flex-1 bg-primary text-primary-foreground rounded-xl py-3 px-2 flex flex-col items-center justify-center gap-1 font-bold text-[10px] sm:text-xs uppercase transition-all hover:opacity-90 shadow-md disabled:opacity-50"
           >
-            <Download className="w-6 h-6" />
+            <Download className="w-5 h-5 sm:w-6 sm:h-6" />
             EXPORT
           </button>
           {canEdit() && (
-            <label className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md min-h-[90px]">
-              <Upload className="w-6 h-6" />
+            <label className="flex-1 bg-primary text-primary-foreground rounded-xl py-3 px-2 flex flex-col items-center justify-center gap-1 font-bold text-[10px] sm:text-xs uppercase cursor-pointer transition-all hover:opacity-90 shadow-md">
+              <Upload className="w-5 h-5 sm:w-6 sm:h-6" />
               IMPORT
               <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={isSyncing} />
             </label>
@@ -220,16 +220,16 @@ export const PricingView = () => {
             <button
               onClick={handleSeedFromJson}
               disabled={isSyncing}
-              className="bg-primary text-primary-foreground rounded-2xl px-4 py-4 flex flex-col items-center justify-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50 min-h-[90px]"
+              className="flex-1 bg-primary text-primary-foreground rounded-xl py-3 px-2 flex flex-col items-center justify-center gap-1 font-bold text-[10px] sm:text-xs uppercase transition-all hover:opacity-90 shadow-md disabled:opacity-50"
             >
-              {isSyncing ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw className="w-6 h-6" />}
+              {isSyncing ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />}
               SEED DATA
             </button>
           )}
           {!canEdit() && (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground bg-muted/50 rounded-2xl px-4 py-4 min-h-[90px]">
-              <Lock className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase">View Only</span>
+            <div className="flex-1 flex items-center justify-center gap-2 text-muted-foreground bg-muted/50 rounded-xl py-3 px-2">
+              <Lock className="w-4 h-4" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase">View Only</span>
             </div>
           )}
         </div>
