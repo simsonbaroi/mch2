@@ -6,54 +6,54 @@
 
 @layer base {
   :root {
-    /* Hospital Billing Pro - Light Mode Theme */
-    --background: 220 14% 96%;
-    --foreground: 222 47% 11%;
+    /* Hospital Billing Pro - Clean Light Mode */
+    --background: 0 0% 97%;
+    --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 20% 15%;
 
-    --primary: 160 84% 32%;
+    --primary: 160 70% 36%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 90%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 10% 92%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 220 14% 90%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 10% 92%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 199 89% 42%;
+    --accent: 199 80% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 80%;
-    --input: 220 14% 96%;
-    --ring: 160 84% 32%;
+    --border: 220 10% 82%;
+    --input: 0 0% 100%;
+    --ring: 160 70% 36%;
 
     --radius: 0.75rem;
 
     /* Custom tokens - Light mode */
-    --primary-soft: 160 84% 32% / 0.12;
-    --primary-glow: 160 84% 32% / 0.2;
+    --primary-soft: 160 70% 36% / 0.1;
+    --primary-glow: 160 70% 36% / 0.15;
     --surface: 0 0% 100%;
-    --surface-light: 220 14% 94%;
-    --nav-bg: 220 14% 96%;
-    --accent-blue: 199 89% 42%;
-    --accent-red: 0 84% 55%;
+    --surface-light: 220 10% 96%;
+    --nav-bg: 0 0% 100%;
+    --accent-blue: 199 80% 45%;
+    --accent-red: 0 72% 51%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 160 84% 32%;
+    --sidebar-foreground: 220 20% 15%;
+    --sidebar-primary: 160 70% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 90%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 80%;
-    --sidebar-ring: 160 84% 32%;
+    --sidebar-accent: 220 10% 92%;
+    --sidebar-accent-foreground: 220 20% 20%;
+    --sidebar-border: 220 10% 82%;
+    --sidebar-ring: 160 70% 36%;
   }
 
   .dark {
