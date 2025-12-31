@@ -54,7 +54,9 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentCatOPIdx, setCurrentCatOPIdx] = useState(0);
   const [currentCatIPIdx, setCurrentCatIPIdx] = useState(0);
 
-  const outpatientCategories = Object.keys(inventory).sort();
+  const inventoryCategories = Object.keys(inventory).sort();
+  // Outpatient should still show category tiles even when inventory is empty (first-run/empty DB).
+  const outpatientCategories = inventoryCategories.length > 0 ? inventoryCategories : INPATIENT_CATEGORIES;
   const inpatientCategories = INPATIENT_CATEGORIES;
 
   const addToBill = useCallback((item: BillItem) => {
