@@ -199,7 +199,7 @@ interface CategoryConfig {
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { settings, updateSettings, updateNavButton, resetSettings } = useAppSettings();
-  const { inventory, setInventory } = useBilling();
+  const { inventory } = useBilling();
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
@@ -274,39 +274,18 @@ const SettingsPage = () => {
       enabled: true
     };
     setCategories([...categories, newCat]);
-    setInventory(prev => ({
-      ...prev,
-      ['New Category']: []
-    }));
-    toast.success('Category added');
+    toast.success('Category added (local only - add items via Price List to persist)');
   };
 
   const handleUpdateCategory = (index: number, updates: Partial<CategoryConfig>) => {
     const newCats = [...categories];
-    const oldName = newCats[index].name;
     newCats[index] = { ...newCats[index], ...updates };
-    
-    if (updates.name && updates.name !== oldName) {
-      setInventory(prev => {
-        const newInv = { ...prev };
-        newInv[updates.name!] = prev[oldName] || [];
-        delete newInv[oldName];
-        return newInv;
-      });
-    }
-    
     setCategories(newCats);
   };
 
   const handleDeleteCategory = (index: number) => {
-    const cat = categories[index];
-    setInventory(prev => {
-      const newInv = { ...prev };
-      delete newInv[cat.name];
-      return newInv;
-    });
     setCategories(categories.filter((_, i) => i !== index));
-    toast.success('Category deleted');
+    toast.success('Category removed from view');
   };
 
   const handleColorChange = (key: keyof typeof colorSettings, value: string) => {

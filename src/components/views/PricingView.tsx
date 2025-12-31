@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Upload, Database } from 'lucide-react';
+import { Search, Plus, Download, Upload, Database, RefreshCw, Loader2 } from 'lucide-react';
 import { useBilling } from '@/contexts/BillingContext';
 import { InventoryItem } from '@/types/billing';
 import { ItemEntry } from '@/components/ItemEntry';
@@ -13,7 +13,18 @@ import {
 } from '@/components/ui/dialog';
 
 export const PricingView = () => {
-  const { inventory, setInventory, outpatientCategories, inpatientCategories, nextItemId, setNextItemId } = useBilling();
+  const { 
+    inventory, 
+    outpatientCategories, 
+    inpatientCategories, 
+    isSyncing,
+    addItem,
+    updateItem,
+    deleteItem,
+    bulkImport,
+    exportData,
+    seedFromJson,
+  } = useBilling();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -60,7 +71,7 @@ export const PricingView = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const errors: Record<string, string> = {};
     
     // Validate name
@@ -81,85 +92,39 @@ export const PricingView = () => {
       return;
     }
 
-    const newInventory = { ...inventory };
     const validatedPrice = priceResult.value || 0;
 
     if (editingItem) {
-      // Editing existing item
+      // Update existing item in database
       const oldCat = editingItem.category || '';
-
-      // Remove from old category if category changed
-      if (oldCat && oldCat !== formCategory && newInventory[oldCat]) {
-        newInventory[oldCat] = newInventory[oldCat].filter((i) => i.id !== editingItem.id);
-        if (newInventory[oldCat].length === 0) {
-          delete newInventory[oldCat];
-        }
-      }
-
-      // Add/update in new category
-      if (!newInventory[formCategory]) {
-        newInventory[formCategory] = [];
-      }
-
-      const existingIndex = newInventory[formCategory].findIndex((i) => i.id === editingItem.id);
-      const updatedItem: InventoryItem = {
-        ...editingItem,
+      await updateItem(editingItem.id, {
         name: nameResult.value || formName.trim(),
         category: formCategory,
         price: validatedPrice,
         type: formType,
-      };
-
-      if (existingIndex > -1) {
-        newInventory[formCategory][existingIndex] = updatedItem;
-      } else {
-        newInventory[formCategory].push(updatedItem);
-      }
-
-      toast.success('Record updated');
+      }, oldCat);
     } else {
-      // Adding new item
-      if (!newInventory[formCategory]) {
-        newInventory[formCategory] = [];
-      }
-
-      const newItem: InventoryItem = {
-        id: nextItemId,
+      // Add new item to database
+      await addItem({
         name: nameResult.value || formName.trim(),
         price: validatedPrice,
         type: formType,
         category: formCategory,
-      };
-
-      newInventory[formCategory].push(newItem);
-      setNextItemId(nextItemId + 1);
-      toast.success('Record added');
+      });
     }
 
-    setInventory(newInventory);
     setIsModalOpen(false);
   };
 
-  const handleDelete = (item: InventoryItem) => {
+  const handleDelete = async (item: InventoryItem) => {
     if (!confirm(`Delete "${item.name}" from ${item.category || 'N/A'}?`)) return;
-
-    const newInventory = { ...inventory };
-    const cat = item.category || '';
-
-    if (cat && newInventory[cat]) {
-      newInventory[cat] = newInventory[cat].filter((i) => i.id !== item.id);
-      if (newInventory[cat].length === 0) {
-        delete newInventory[cat];
-      }
-    }
-
-    setInventory(newInventory);
-    toast.success('Record deleted');
+    await deleteItem(item.id, item.category || '');
   };
 
   const handleExport = () => {
-    const data = JSON.stringify(allItems, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
+    const data = exportData();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -176,7 +141,7 @@ export const PricingView = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const rawData = JSON.parse(event.target?.result as string);
         
@@ -190,31 +155,26 @@ export const PricingView = () => {
         if (!confirm('This will REPLACE your current database. Continue?')) return;
 
         const data = validationResult.data!;
-        const newInventory: Record<string, InventoryItem[]> = {};
-        let maxId = 0;
-
-        data.forEach((item) => {
-          const cat = item.category || 'General';
-          if (!newInventory[cat]) newInventory[cat] = [];
-          if (item.id > maxId) maxId = item.id;
-          newInventory[cat].push({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            type: item.type,
-            category: cat,
-          });
-        });
-
-        setInventory(newInventory);
-        setNextItemId(maxId + 1);
-        toast.success('Database imported');
+        // Map validated data to InventoryItem format
+        const items = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          type: item.type,
+          category: item.category,
+        }));
+        await bulkImport(items);
       } catch {
         toast.error('Failed to import: Invalid JSON format');
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleSeedFromJson = async () => {
+    if (!confirm('This will SEED the database from med.json file. Continue?')) return;
+    await seedFromJson();
   };
 
   return (
@@ -231,14 +191,16 @@ export const PricingView = () => {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={openAddModal}
-            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md"
+            disabled={isSyncing}
+            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
           >
             <Plus className="w-6 h-6" />
             ADD NEW
           </button>
           <button
             onClick={handleExport}
-            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md"
+            disabled={isSyncing}
+            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
           >
             <Download className="w-6 h-6" />
             EXPORT
@@ -246,8 +208,18 @@ export const PricingView = () => {
           <label className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md">
             <Upload className="w-6 h-6" />
             IMPORT
-            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={isSyncing} />
           </label>
+          {allItems.length === 0 && (
+            <button
+              onClick={handleSeedFromJson}
+              disabled={isSyncing}
+              className="bg-accent text-accent-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
+            >
+              {isSyncing ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw className="w-6 h-6" />}
+              SEED DATA
+            </button>
+          )}
         </div>
       </div>
 
