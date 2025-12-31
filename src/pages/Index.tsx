@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BillingProvider, useBilling } from '@/contexts/BillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
 import { HomeView } from '@/components/views/HomeView';
@@ -37,6 +40,28 @@ const MainContent = () => {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, isLoading } = useAuthContext();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth
+  }
+
   return (
     <BillingProvider>
       <div className="min-h-screen bg-background">

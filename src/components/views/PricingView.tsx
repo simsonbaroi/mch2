@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Upload, Database, RefreshCw, Loader2 } from 'lucide-react';
+import { Search, Plus, Download, Upload, Database, RefreshCw, Loader2, Lock } from 'lucide-react';
 import { useBilling } from '@/contexts/BillingContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { InventoryItem } from '@/types/billing';
 import { ItemEntry } from '@/components/ItemEntry';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ export const PricingView = () => {
     exportData,
     seedFromJson,
   } = useBilling();
+  const { canEdit, isAdmin } = useAuthContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -189,14 +191,16 @@ export const PricingView = () => {
         </div>
 
         <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={openAddModal}
-            disabled={isSyncing}
-            className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
-          >
-            <Plus className="w-6 h-6" />
-            ADD NEW
-          </button>
+          {canEdit() && (
+            <button
+              onClick={openAddModal}
+              disabled={isSyncing}
+              className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase transition-all hover:scale-[0.98] shadow-md disabled:opacity-50"
+            >
+              <Plus className="w-6 h-6" />
+              ADD NEW
+            </button>
+          )}
           <button
             onClick={handleExport}
             disabled={isSyncing}
@@ -205,12 +209,14 @@ export const PricingView = () => {
             <Download className="w-6 h-6" />
             EXPORT
           </button>
-          <label className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md">
-            <Upload className="w-6 h-6" />
-            IMPORT
-            <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={isSyncing} />
-          </label>
-          {allItems.length === 0 && (
+          {canEdit() && (
+            <label className="bg-primary text-primary-foreground rounded-2xl px-5 py-4 flex flex-col items-center gap-2 font-extrabold text-xs uppercase cursor-pointer transition-all hover:scale-[0.98] shadow-md">
+              <Upload className="w-6 h-6" />
+              IMPORT
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={isSyncing} />
+            </label>
+          )}
+          {allItems.length === 0 && canEdit() && (
             <button
               onClick={handleSeedFromJson}
               disabled={isSyncing}
@@ -219,6 +225,12 @@ export const PricingView = () => {
               {isSyncing ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw className="w-6 h-6" />}
               SEED DATA
             </button>
+          )}
+          {!canEdit() && (
+            <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 rounded-2xl px-5 py-4">
+              <Lock className="w-5 h-5" />
+              <span className="text-xs font-bold uppercase">View Only</span>
+            </div>
           )}
         </div>
       </div>
@@ -246,9 +258,9 @@ export const PricingView = () => {
               item={item}
               category={item.category || ''}
               onClick={() => {}}
-              showActions
-              onEdit={() => openEditModal(item)}
-              onDelete={() => handleDelete(item)}
+              showActions={canEdit()}
+              onEdit={canEdit() ? () => openEditModal(item) : undefined}
+              onDelete={isAdmin() ? () => handleDelete(item) : undefined}
             />
           ))
         )}
