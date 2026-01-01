@@ -577,12 +577,12 @@ const SettingsPage = () => {
         </div>
 
         {/* Right: Settings Content */}
-        <main className="flex-1 overflow-y-auto px-4 lg:px-8 py-8 space-y-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
         
         {/* App Information */}
-        <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Image className="w-5 h-5 text-primary" />
+        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             App Information
           </h2>
           
@@ -668,18 +668,19 @@ const SettingsPage = () => {
         </section>
 
         {/* Navigation Buttons */}
-        <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
+        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-primary" />
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+              <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Navigation Buttons
             </h2>
             <button
               onClick={handleAddNavButton}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Button
+              <span className="hidden sm:inline">Add Button</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
           
@@ -687,41 +688,45 @@ const SettingsPage = () => {
             {settings.navButtons.map((btn) => {
               const IconComp = getIconComponent(btn.icon);
               return (
-                <div key={btn.id} className="flex items-center gap-3 bg-surface border border-border rounded-xl p-3">
-                  <GripVertical className="w-5 h-5 text-muted-foreground cursor-grab" />
-                  
-                  <input
-                    type="text"
-                    value={btn.label}
-                    onChange={(e) => updateNavButton(btn.id, { label: e.target.value })}
-                    className="flex-1 bg-surface-light border border-border text-foreground px-3 py-2 rounded-lg outline-none font-medium transition-all focus:border-primary"
-                  />
-                  
-                  <Select
-                    value={btn.icon}
-                    onValueChange={(value) => updateNavButton(btn.id, { icon: value })}
-                  >
-                    <SelectTrigger className="w-40 bg-surface-light border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      {iconOptions.slice(8, 12).map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <div className="flex items-center gap-2">
-                            <opt.icon className="w-4 h-4" />
-                            {opt.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
+                <div key={btn.id} className="bg-surface border border-border rounded-xl p-3 space-y-3">
+                  {/* Mobile: Stack vertically */}
                   <div className="flex items-center gap-2">
-                    <Switch
-                      checked={btn.visible}
-                      onCheckedChange={(checked) => updateNavButton(btn.id, { visible: checked })}
+                    <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground cursor-grab flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={btn.label}
+                      onChange={(e) => updateNavButton(btn.id, { label: e.target.value })}
+                      className="flex-1 bg-surface-light border border-border text-foreground px-3 py-2 rounded-lg outline-none font-medium text-sm transition-all focus:border-primary min-w-0"
                     />
-                    <span className="text-sm text-muted-foreground">Visible</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select
+                      value={btn.icon}
+                      onValueChange={(value) => updateNavButton(btn.id, { icon: value })}
+                    >
+                      <SelectTrigger className="w-full sm:w-36 bg-surface-light border-border text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        {iconOptions.slice(8, 12).map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <div className="flex items-center gap-2">
+                              <opt.icon className="w-4 h-4" />
+                              {opt.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Switch
+                        checked={btn.visible}
+                        onCheckedChange={(checked) => updateNavButton(btn.id, { visible: checked })}
+                      />
+                      <span className="text-xs sm:text-sm text-muted-foreground">Visible</span>
+                    </div>
                   </div>
                 </div>
               );
@@ -730,31 +735,34 @@ const SettingsPage = () => {
         </section>
 
         {/* Categories */}
-        <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
+        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Grid3X3 className="w-5 h-5 text-primary" />
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+              <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Categories
             </h2>
             <button
               onClick={handleAddCategory}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Category
+              <span className="hidden sm:inline">Add Category</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
 
           <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as any)}>
             <TabsList className="bg-surface border border-border p-1 rounded-xl w-full">
-              <TabsTrigger value="all" className="flex-1 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="all" className="flex-1 rounded-lg text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 All ({categories.length})
               </TabsTrigger>
-              <TabsTrigger value="outpatient" className="flex-1 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Outpatient
+              <TabsTrigger value="outpatient" className="flex-1 rounded-lg text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <span className="hidden sm:inline">Outpatient</span>
+                <span className="sm:hidden">Out</span>
               </TabsTrigger>
-              <TabsTrigger value="inpatient" className="flex-1 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Inpatient
+              <TabsTrigger value="inpatient" className="flex-1 rounded-lg text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <span className="hidden sm:inline">Inpatient</span>
+                <span className="sm:hidden">In</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -764,62 +772,71 @@ const SettingsPage = () => {
               const IconComp = getIconComponent(cat.icon);
               const realIdx = categories.findIndex(c => c.name === cat.name);
               return (
-                <div key={cat.name} className="flex items-center gap-3 bg-surface border border-border rounded-xl p-3">
-                  <button className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <IconComp className="w-5 h-5 text-primary" />
-                  </button>
+                <div key={cat.name} className="bg-surface border border-border rounded-xl p-3 space-y-3">
+                  {/* Row 1: Icon + Name */}
+                  <div className="flex items-center gap-2">
+                    <button className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <IconComp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    </button>
+                    
+                    <input
+                      type="text"
+                      value={cat.name}
+                      onChange={(e) => handleUpdateCategory(realIdx, { name: e.target.value })}
+                      className="flex-1 bg-surface-light border border-border text-foreground px-3 py-2 rounded-lg outline-none font-medium text-sm transition-all focus:border-primary min-w-0"
+                    />
+                    
+                    <button
+                      onClick={() => handleDeleteCategory(realIdx)}
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  </div>
                   
-                  <input
-                    type="text"
-                    value={cat.name}
-                    onChange={(e) => handleUpdateCategory(realIdx, { name: e.target.value })}
-                    className="flex-1 bg-surface-light border border-border text-foreground px-3 py-2 rounded-lg outline-none font-medium transition-all focus:border-primary"
-                  />
-                  
-                  <Select
-                    value={cat.icon}
-                    onValueChange={(value) => handleUpdateCategory(realIdx, { icon: value })}
-                  >
-                    <SelectTrigger className="w-36 bg-surface-light border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border max-h-60">
-                      {iconOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <div className="flex items-center gap-2">
-                            <opt.icon className="w-4 h-4" />
-                            {opt.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select
-                    value={cat.type}
-                    onValueChange={(value) => handleUpdateCategory(realIdx, { type: value as any })}
-                  >
-                    <SelectTrigger className="w-32 bg-surface-light border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      <SelectItem value="both">Both</SelectItem>
-                      <SelectItem value="outpatient">Outpatient</SelectItem>
-                      <SelectItem value="inpatient">Inpatient</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Switch
-                    checked={cat.enabled}
-                    onCheckedChange={(checked) => handleUpdateCategory(realIdx, { enabled: checked })}
-                  />
-                  
-                  <button
-                    onClick={() => handleDeleteCategory(realIdx)}
-                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  {/* Row 2: Icon selector + Type + Toggle */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select
+                      value={cat.icon}
+                      onValueChange={(value) => handleUpdateCategory(realIdx, { icon: value })}
+                    >
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-32 bg-surface-light border-border text-xs sm:text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border max-h-60">
+                        {iconOptions.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <div className="flex items-center gap-2">
+                              <opt.icon className="w-4 h-4" />
+                              {opt.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select
+                      value={cat.type}
+                      onValueChange={(value) => handleUpdateCategory(realIdx, { type: value as any })}
+                    >
+                      <SelectTrigger className="w-[calc(50%-4px)] sm:w-28 bg-surface-light border-border text-xs sm:text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="both">Both</SelectItem>
+                        <SelectItem value="outpatient">Outpatient</SelectItem>
+                        <SelectItem value="inpatient">Inpatient</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Switch
+                        checked={cat.enabled}
+                        onCheckedChange={(checked) => handleUpdateCategory(realIdx, { enabled: checked })}
+                      />
+                      <span className="text-xs text-muted-foreground hidden sm:inline">Enabled</span>
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -827,25 +844,26 @@ const SettingsPage = () => {
         </section>
 
         {/* Color Theme */}
-        <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Palette className="w-5 h-5 text-primary" />
+        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-3">
+            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+              <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Color Theme
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setShowSavePreset(!showSavePreset)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
               >
-                <Save className="w-4 h-4" />
-                Save Preset
+                <Save className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Save Preset</span>
+                <span className="sm:hidden">Save</span>
               </button>
               <button
                 onClick={resetColors}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
                 Reset
               </button>
             </div>
@@ -899,7 +917,7 @@ const SettingsPage = () => {
 
             {/* Save new preset form */}
             {showSavePreset && (
-              <div className="flex items-center gap-2 mt-3 p-3 bg-surface-light border border-border rounded-xl">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3 p-3 bg-surface-light border border-border rounded-xl">
                 <input
                   type="text"
                   value={newPresetName}
@@ -907,22 +925,24 @@ const SettingsPage = () => {
                   placeholder="Enter preset name..."
                   className="flex-1 bg-surface border border-border text-foreground px-3 py-2 rounded-lg outline-none text-sm focus:border-primary"
                 />
-                <button
-                  onClick={saveCurrentAsPreset}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
-                  <Check className="w-4 h-4" />
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSavePreset(false);
-                    setNewPresetName('');
-                  }}
-                  className="px-3 py-2 text-muted-foreground hover:text-foreground text-sm transition-colors"
-                >
-                  Cancel
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={saveCurrentAsPreset}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSavePreset(false);
+                      setNewPresetName('');
+                    }}
+                    className="px-3 py-2 text-muted-foreground hover:text-foreground text-sm transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
