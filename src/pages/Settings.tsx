@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   ArrowLeft, 
   Upload, 
@@ -44,7 +46,9 @@ import {
   Loader2,
   RefreshCw,
   Save,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAppSettings, NavButtonConfig } from '@/contexts/AppSettingsContext';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
@@ -284,10 +288,38 @@ const SettingsPage = () => {
   const { settings, updateSettings, updateNavButton, resetSettings } = useAppSettings();
   const { inventory } = useLocalBilling();
   const { user, isLoading } = useLocalAuthContext();
+  const isMobile = useIsMobile();
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Mobile section navigation
+  const sections = ['info', 'navigation', 'categories', 'theme'] as const;
+  type Section = typeof sections[number];
+  const [activeSection, setActiveSection] = useState<Section>('info');
+  
+  const sectionLabels: Record<Section, string> = {
+    info: 'App Info',
+    navigation: 'Navigation',
+    categories: 'Categories',
+    theme: 'Theme',
+  };
+
+  const navigateSection = useCallback((direction: 'next' | 'prev') => {
+    const currentIndex = sections.indexOf(activeSection);
+    if (direction === 'next' && currentIndex < sections.length - 1) {
+      setActiveSection(sections[currentIndex + 1]);
+    } else if (direction === 'prev' && currentIndex > 0) {
+      setActiveSection(sections[currentIndex - 1]);
+    }
+  }, [activeSection]);
+
+  const { touchHandlers } = useTouchGestures({
+    onSwipeLeft: () => navigateSection('next'),
+    onSwipeRight: () => navigateSection('prev'),
+    threshold: 50,
+  });
   
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'outpatient' | 'inpatient'>('all');
   const [previewKey, setPreviewKey] = useState(0);
@@ -577,10 +609,48 @@ const SettingsPage = () => {
         </div>
 
         {/* Right: Settings Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        <main 
+          className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8"
+          {...(isMobile ? touchHandlers : {})}
+        >
         
+        {/* Mobile Section Navigator */}
+        {isMobile && (
+          <div className="flex items-center justify-between bg-card border border-border rounded-xl p-2 sticky top-0 z-40">
+            <button
+              onClick={() => navigateSection('prev')}
+              disabled={sections.indexOf(activeSection) === 0}
+              className="p-2 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              {sections.map((section) => (
+                <button
+                  key={section}
+                  onClick={() => setActiveSection(section)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    activeSection === section
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {sectionLabels[section]}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => navigateSection('next')}
+              disabled={sections.indexOf(activeSection) === sections.length - 1}
+              className="p-2 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
         {/* App Information */}
-        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'info' ? 'hidden' : ''}`}>
           <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             <Image className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             App Information
@@ -668,7 +738,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Navigation Buttons */}
-        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'navigation' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -735,7 +805,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Categories */}
-        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'categories' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -844,7 +914,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Color Theme */}
-        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'theme' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-3">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
