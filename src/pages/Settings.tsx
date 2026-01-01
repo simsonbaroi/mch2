@@ -321,6 +321,17 @@ const SettingsPage = () => {
     }));
   });
 
+  // Theme colors (stored in app settings) - MUST be before early returns
+  const [colorSettings, setColorSettings] = useState({
+    primary: settings.primaryColor,
+    secondary: settings.secondaryColor,
+    accent: settings.accentColor,
+    background: settings.backgroundColor,
+    foreground: settings.foregroundColor,
+    muted: settings.mutedColor,
+    destructive: settings.destructiveColor,
+  });
+
   // Sync settings to iframe preview via postMessage (instant update, no reload)
   const syncToPreview = useCallback((settingsUpdate: Partial<typeof settings>) => {
     if (iframeRef.current?.contentWindow) {
@@ -335,36 +346,6 @@ const SettingsPage = () => {
   const refreshPreview = useCallback(() => {
     setPreviewKey(prev => prev + 1);
   }, []);
-
-  // Redirect to auth if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, isLoading, navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  // Theme colors (stored in app settings)
-  const [colorSettings, setColorSettings] = useState({
-    primary: settings.primaryColor,
-    secondary: settings.secondaryColor,
-    accent: settings.accentColor,
-    background: settings.backgroundColor,
-    foreground: settings.foregroundColor,
-    muted: settings.mutedColor,
-    destructive: settings.destructiveColor,
-  });
 
   // Keep local sliders in sync if theme changes elsewhere (e.g. toggle dark mode)
   useEffect(() => {
@@ -386,6 +367,26 @@ const SettingsPage = () => {
     settings.mutedColor,
     settings.destructiveColor,
   ]);
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, isLoading, navigate]);
+
+  // Early returns AFTER all hooks
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleFileUpload = (type: 'logo' | 'favicon', file: File) => {
     if (!file.type.startsWith('image/')) {
