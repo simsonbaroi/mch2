@@ -44,8 +44,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAppSettings, NavButtonConfig } from '@/contexts/AppSettingsContext';
-import { BillingProvider, useBilling } from '@/contexts/BillingContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
+import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -201,8 +201,8 @@ interface CategoryConfig {
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { settings, updateSettings, updateNavButton, resetSettings } = useAppSettings();
-  const { inventory } = useBilling();
-  const { user, isLoading } = useAuthContext();
+  const { inventory } = useLocalBilling();
+  const { user, isLoading } = useLocalAuthContext();
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
@@ -726,11 +726,11 @@ const SettingsPage = () => {
   );
 };
 
-// Wrap with BillingProvider so useBilling hook works
+// Wrap with LocalBillingProvider so useLocalBilling hook works
 export default function Settings() {
   return (
-    <BillingProvider>
+    <LocalBillingProvider>
       <SettingsPage />
-    </BillingProvider>
+    </LocalBillingProvider>
   );
 }

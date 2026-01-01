@@ -1,6 +1,6 @@
 import { X, CheckCircle2 } from 'lucide-react';
 import { BillItem } from '@/types/billing';
-import { useBilling } from '@/contexts/BillingContext';
+import { useLocalBilling } from '@/contexts/LocalBillingContext';
 import { toast } from 'sonner';
 
 interface StatementSidebarProps {
@@ -9,7 +9,7 @@ interface StatementSidebarProps {
 }
 
 export const StatementSidebar = ({ title, prefix }: StatementSidebarProps) => {
-  const { bill, removeFromBill, clearBill } = useBilling();
+  const { bill, removeFromBill, clearBill } = useLocalBilling();
 
   const total = bill.reduce((sum, item) => sum + item.subtotal, 0);
   const categories = [...new Set(bill.map((item) => item.category))].sort();
