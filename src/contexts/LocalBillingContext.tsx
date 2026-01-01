@@ -24,6 +24,7 @@ interface BillingContextType {
   bulkImport: (items: InventoryItem[]) => boolean;
   exportData: () => InventoryItem[];
   seedFromJson: () => Promise<boolean>;
+  refreshData: () => Promise<void>;
 }
 
 const LocalBillingContext = createContext<BillingContextType | null>(null);
@@ -47,7 +48,13 @@ export const LocalBillingProvider: React.FC<{ children: React.ReactNode }> = ({ 
     bulkImport,
     exportData,
     seedFromJson,
+    refetch,
   } = useLocalInventory();
+
+  // Refresh data function for pull-to-refresh
+  const refreshData = useCallback(async () => {
+    refetch();
+  }, [refetch]);
 
   const [bill, setBill] = useState<BillItem[]>([]);
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -94,6 +101,7 @@ export const LocalBillingProvider: React.FC<{ children: React.ReactNode }> = ({ 
         bulkImport,
         exportData,
         seedFromJson,
+        refreshData,
       }}
     >
       {children}
