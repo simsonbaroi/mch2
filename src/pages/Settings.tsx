@@ -349,7 +349,7 @@ const SettingsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-background border-b border-border sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-full mx-auto px-4 py-4 flex justify-between items-center">
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors"
@@ -363,7 +363,29 @@ const SettingsPage = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      {/* 2-Column Layout */}
+      <div className="flex h-[calc(100vh-65px)]">
+        {/* Left: Mobile Preview */}
+        <div className="hidden lg:flex w-[400px] flex-shrink-0 bg-surface border-r border-border flex-col items-center justify-center p-6 gap-4 sticky top-[65px]">
+          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Live Mobile Preview</span>
+          <div className="relative">
+            {/* Phone Frame */}
+            <div className="w-[375px] h-[667px] bg-background rounded-[40px] border-4 border-muted overflow-hidden shadow-2xl relative">
+              {/* Notch */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-muted rounded-b-2xl z-10" />
+              {/* Screen */}
+              <iframe
+                src="/?preview=true"
+                className="w-full h-full border-0"
+                title="Mobile Preview"
+              />
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground">iPhone 8 (375×667)</span>
+        </div>
+
+        {/* Right: Settings Content */}
+        <main className="flex-1 overflow-y-auto px-4 lg:px-8 py-8 space-y-8">
         
         {/* App Information */}
         <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
@@ -721,7 +743,8 @@ const SettingsPage = () => {
           </div>
         </section>
 
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

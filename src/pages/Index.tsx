@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
@@ -69,14 +69,18 @@ const MainContent = () => {
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isLoading } = useLocalAuthContext();
+  
+  // Check if this is a preview mode (embedded iframe in settings)
+  const isPreviewMode = searchParams.get('preview') === 'true';
 
-  // Redirect to auth if not authenticated
+  // Redirect to auth if not authenticated (skip in preview mode)
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isPreviewMode && !isLoading && !user) {
       navigate('/auth');
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, isPreviewMode]);
 
   // Prevent bounce scroll on iOS
   useEffect(() => {
@@ -94,7 +98,7 @@ const Index = () => {
     );
   }
 
-  if (!user) {
+  if (!user && !isPreviewMode) {
     return null; // Will redirect to auth
   }
 
