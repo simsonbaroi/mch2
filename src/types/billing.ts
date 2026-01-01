@@ -12,7 +12,7 @@ export interface BillItem extends InventoryItem {
   subtotal: number;
 }
 
-export type ViewType = 'home' | 'outpatient' | 'inpatient' | 'pricing';
+export type ViewType = 'home' | 'outpatient' | 'inpatient' | 'pricing' | 'patients';
 
 export const INPATIENT_CATEGORIES = [
   "Medicine",

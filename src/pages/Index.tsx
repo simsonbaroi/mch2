@@ -9,6 +9,7 @@ import { HomeView } from '@/components/views/HomeView';
 import { OutpatientView } from '@/components/views/OutpatientView';
 import { InpatientView } from '@/components/views/InpatientView';
 import { PricingView } from '@/components/views/PricingView';
+import { PatientsView } from '@/components/views/PatientsView';
 import { PullToRefreshIndicator } from '@/components/mobile/PullToRefreshIndicator';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Loader2 } from 'lucide-react';
@@ -62,6 +63,7 @@ const MainContent = () => {
         {currentView === 'outpatient' && isViewVisible('outpatient') && <OutpatientView />}
         {currentView === 'inpatient' && isViewVisible('inpatient') && <InpatientView />}
         {currentView === 'pricing' && isViewVisible('pricing') && <PricingView />}
+        {currentView === 'patients' && isViewVisible('patients') && <PatientsView />}
       </div>
     </div>
   );

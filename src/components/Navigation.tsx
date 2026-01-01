@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, UserCheck, BedDouble, Tags, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, UserCheck, BedDouble, Tags, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { ViewType } from '@/types/billing';
@@ -12,6 +12,7 @@ const iconMap: Record<string, React.ReactNode> = {
   UserCheck: <UserCheck className="w-5 h-5" />,
   BedDouble: <BedDouble className="w-5 h-5" />,
   Tags: <Tags className="w-5 h-5" />,
+  Users: <Users className="w-5 h-5" />,
 };
 
 export const Navigation = () => {
