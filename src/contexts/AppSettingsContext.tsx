@@ -22,16 +22,30 @@ export interface AppSettings {
   navButtons: NavButtonConfig[];
 }
 
-const defaultSettings: AppSettings = {
-  appName: 'MCH Billing',
-  appSubtitle: 'System',
-  logoUrl: null,
-  faviconUrl: null,
+// Light mode default settings
+const lightModeColors = {
+  primaryColor: '160 70% 36%',
+  accentColor: '199 80% 45%',
+  backgroundColor: '0 0% 97%',
+  cardColor: '0 0% 100%',
+  borderColor: '220 10% 82%',
+};
+
+// Dark mode default settings  
+const darkModeColors = {
   primaryColor: '160 84% 39%',
   accentColor: '199 89% 48%',
   backgroundColor: '240 10% 4%',
   cardColor: '240 6% 7%',
   borderColor: '240 4% 16%',
+};
+
+const defaultSettings: AppSettings = {
+  appName: 'MCH Billing',
+  appSubtitle: 'System',
+  logoUrl: null,
+  faviconUrl: null,
+  ...darkModeColors,
   isDarkMode: true,
   navButtons: [
     { id: 'home', label: 'HOME', icon: 'Home', visible: true },
@@ -95,15 +109,32 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     };
     saveSettings();
     
-    // Apply CSS variables
+    // Apply dark/light mode FIRST - this switches between :root and .dark CSS variables
+    if (settings.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Only apply custom CSS variables if user has customized them
+    // Otherwise, let the CSS :root and .dark classes handle theming
     const root = document.documentElement;
-    root.style.setProperty('--primary', settings.primaryColor);
-    root.style.setProperty('--accent', settings.primaryColor);
-    root.style.setProperty('--accent-blue', settings.accentColor);
-    root.style.setProperty('--background', settings.backgroundColor);
-    root.style.setProperty('--card', settings.cardColor);
-    root.style.setProperty('--surface', settings.cardColor);
-    root.style.setProperty('--border', settings.borderColor);
+    const currentModeColors = settings.isDarkMode ? darkModeColors : lightModeColors;
+    
+    // Only override if user has customized (different from defaults)
+    if (settings.primaryColor !== currentModeColors.primaryColor) {
+      root.style.setProperty('--primary', settings.primaryColor);
+      root.style.setProperty('--ring', settings.primaryColor);
+    } else {
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--ring');
+    }
+    
+    if (settings.accentColor !== currentModeColors.accentColor) {
+      root.style.setProperty('--accent-blue', settings.accentColor);
+    } else {
+      root.style.removeProperty('--accent-blue');
+    }
     
     // Update favicon if set
     if (settings.faviconUrl) {
@@ -112,13 +143,6 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
       link.rel = 'shortcut icon';
       link.href = settings.faviconUrl;
       document.getElementsByTagName('head')[0].appendChild(link);
-    }
-
-    // Apply dark/light mode
-    if (settings.isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
     }
   }, [settings, isLoaded]);
 
