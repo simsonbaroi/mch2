@@ -1,3 +1,24 @@
+/**
+ * LOCAL OFFLINE AUTHENTICATION HOOK
+ * 
+ * ⚠️ SECURITY WARNING: This provides NO real security!
+ * 
+ * This module is designed for OFFLINE/SINGLE-USER operation only:
+ * - All data stored in browser localStorage
+ * - Any user can modify roles via browser DevTools
+ * - Passwords are stored in plain text in localStorage
+ * - NOT suitable for multi-user or sensitive data scenarios
+ * 
+ * For production multi-user deployments, use Supabase authentication
+ * (see src/hooks/useAuth.ts and src/contexts/AuthContext.tsx)
+ * 
+ * Use cases for this local mode:
+ * - Development and testing without internet
+ * - Single-user offline kiosk operation
+ * - Demo/presentation mode
+ * - Environments without external network access
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
