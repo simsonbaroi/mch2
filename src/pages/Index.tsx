@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -9,11 +9,25 @@ import { HomeView } from '@/components/views/HomeView';
 import { OutpatientView } from '@/components/views/OutpatientView';
 import { InpatientView } from '@/components/views/InpatientView';
 import { PricingView } from '@/components/views/PricingView';
+import { PullToRefreshIndicator } from '@/components/mobile/PullToRefreshIndicator';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const MainContent = () => {
-  const { currentView, isLoading } = useLocalBilling();
+  const { currentView, isLoading, refreshData } = useLocalBilling();
   const { settings } = useAppSettings();
+
+  // Pull to refresh
+  const handleRefresh = useCallback(async () => {
+    await refreshData?.();
+    toast.success('Data refreshed');
+  }, [refreshData]);
+
+  const { pullDistance, isRefreshing, pullProgress, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
 
   if (isLoading) {
     return (
@@ -30,12 +44,26 @@ const MainContent = () => {
   };
 
   return (
-    <>
-      {currentView === 'home' && <HomeView />}
-      {currentView === 'outpatient' && isViewVisible('outpatient') && <OutpatientView />}
-      {currentView === 'inpatient' && isViewVisible('inpatient') && <InpatientView />}
-      {currentView === 'pricing' && isViewVisible('pricing') && <PricingView />}
-    </>
+    <div {...handlers} className="relative scroll-touch">
+      {/* Pull to refresh indicator - mobile only */}
+      <div className="sm:hidden">
+        <PullToRefreshIndicator
+          pullDistance={pullDistance}
+          isRefreshing={isRefreshing}
+          pullProgress={pullProgress}
+        />
+      </div>
+      
+      <div 
+        className="transition-transform duration-100"
+        style={{ transform: pullDistance > 0 ? `translateY(${pullDistance * 0.3}px)` : undefined }}
+      >
+        {currentView === 'home' && <HomeView />}
+        {currentView === 'outpatient' && isViewVisible('outpatient') && <OutpatientView />}
+        {currentView === 'inpatient' && isViewVisible('inpatient') && <InpatientView />}
+        {currentView === 'pricing' && isViewVisible('pricing') && <PricingView />}
+      </div>
+    </div>
   );
 };
 
@@ -49,6 +77,14 @@ const Index = () => {
       navigate('/auth');
     }
   }, [user, isLoading, navigate]);
+
+  // Prevent bounce scroll on iOS
+  useEffect(() => {
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overscrollBehavior = '';
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -67,7 +103,7 @@ const Index = () => {
       <div className="min-h-screen bg-background overflow-x-hidden">
         <Header />
         <Navigation />
-        <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-8">
+        <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-safe">
           <MainContent />
         </main>
       </div>

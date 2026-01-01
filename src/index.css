@@ -154,4 +154,59 @@
     backdrop-filter: blur(12px);
     background: hsl(var(--card) / 0.8);
   }
+
+  /* Mobile-optimized touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Safe area padding for notched devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Active state for touch feedback */
+  .touch-feedback {
+    @apply transition-all duration-100 active:scale-[0.97] active:opacity-80;
+  }
+
+  /* Momentum scrolling for iOS */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection on touch */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Swipe action background */
+  .swipe-action-delete {
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--destructive)) 50%);
+  }
+
+  .swipe-action-edit {
+    background: linear-gradient(270deg, transparent 0%, hsl(var(--primary)) 50%);
+  }
+
+  /* Mobile card hover alternative */
+  .mobile-card {
+    @apply transition-all duration-200;
+  }
+
+  .mobile-card:active {
+    @apply scale-[0.98] bg-muted/50;
+  }
+
+  /* Bottom navigation safe area */
+  .bottom-nav {
+    padding-bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+  }
 }

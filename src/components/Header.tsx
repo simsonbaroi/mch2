@@ -96,73 +96,97 @@ export const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Controls - Just Settings Icon */}
+        {/* Mobile Controls */}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="bg-surface-light border border-border w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground"
+            className="bg-surface-light border border-border w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground touch-target touch-feedback"
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu - Overlay */}
+      {/* Mobile Menu - Full screen slide-in */}
       {isMobileMenuOpen && (
         <>
           {/* Backdrop */}
           <div 
-            className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+            className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          {/* Menu Panel */}
-          <div className="md:hidden fixed top-[60px] left-0 right-0 bg-card border-b border-border p-4 animate-fade-in z-50 shadow-xl">
-            {/* User Info */}
-            {user && (
-              <div className="flex items-center gap-2 bg-surface-light border border-border rounded-lg px-3 py-2 mb-4">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground font-medium truncate flex-1">
-                  {user.email}
-                </span>
-                {role && (
-                  <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded border ${getRoleBadgeColor()}`}>
-                    {role.replace('_', ' ')}
-                  </span>
-                )}
+          {/* Menu Panel - Slide from right */}
+          <div className="md:hidden fixed top-0 right-0 bottom-0 w-[280px] bg-card border-l border-border p-4 pt-safe animate-slide-in-right z-50 shadow-2xl">
+            {/* Close button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground touch-target touch-feedback"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mt-12 space-y-6">
+              {/* User Info */}
+              {user && (
+                <div className="bg-surface-light border border-border rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                      <User className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {user.fullName || user.email}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  {role && (
+                    <span className={`inline-block text-xs font-bold uppercase px-3 py-1.5 rounded-lg border ${getRoleBadgeColor()}`}>
+                      {role.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Menu Items */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    updateSettings({ isDarkMode: !settings.isDarkMode });
+                    if (navigator.vibrate) navigator.vibrate(10);
+                  }}
+                  className="w-full bg-surface-light border border-border py-4 px-4 rounded-xl flex items-center gap-4 text-foreground touch-target touch-feedback"
+                >
+                  {settings.isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
+                  <span className="font-medium">{settings.isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    navigate('/settings');
+                    setIsMobileMenuOpen(false);
+                    if (navigator.vibrate) navigator.vibrate(10);
+                  }}
+                  className="w-full bg-surface-light border border-border py-4 px-4 rounded-xl flex items-center gap-4 text-foreground touch-target touch-feedback"
+                >
+                  <Settings className="w-5 h-5 text-muted-foreground" />
+                  <span className="font-medium">Settings</span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate(10);
+                    handleSignOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full bg-destructive/10 border border-destructive/20 py-4 px-4 rounded-xl flex items-center gap-4 text-destructive touch-target touch-feedback"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="font-medium">Sign Out</span>
+                </button>
               </div>
-            )}
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  updateSettings({ isDarkMode: !settings.isDarkMode });
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex-1 bg-surface-light border border-border py-3 rounded-lg flex items-center justify-center gap-2 text-muted-foreground"
-              >
-                {settings.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                <span className="text-sm font-medium">{settings.isDarkMode ? 'Light' : 'Dark'}</span>
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/settings');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex-1 bg-surface-light border border-border py-3 rounded-lg flex items-center justify-center gap-2 text-muted-foreground"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="text-sm font-medium">Settings</span>
-              </button>
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex-1 bg-surface-light border border-border py-3 rounded-lg flex items-center justify-center gap-2 text-destructive"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Logout</span>
-              </button>
             </div>
           </div>
         </>
