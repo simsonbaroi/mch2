@@ -109,6 +109,19 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     loadSettings();
   }, []);
 
+  // Listen for settings updates from parent window (for iframe preview sync)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Verify the message is for settings sync
+      if (event.data?.type === 'SETTINGS_SYNC' && event.data?.settings) {
+        setSettings(prev => ({ ...prev, ...event.data.settings }));
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // Save encrypted settings when changed
   useEffect(() => {
     if (!isLoaded) return;
