@@ -321,7 +321,17 @@ const SettingsPage = () => {
     }));
   });
 
-  // Debounced preview refresh
+  // Sync settings to iframe preview via postMessage (instant update, no reload)
+  const syncToPreview = useCallback((settingsUpdate: Partial<typeof settings>) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: 'SETTINGS_SYNC', settings: settingsUpdate },
+        '*'
+      );
+    }
+  }, []);
+
+  // Keep for manual refresh button (fallback)
   const refreshPreview = useCallback(() => {
     setPreviewKey(prev => prev + 1);
   }, []);
@@ -442,17 +452,21 @@ const SettingsPage = () => {
   const handleColorChange = (key: keyof typeof colorSettings, value: string) => {
     setColorSettings(prev => ({ ...prev, [key]: value }));
 
-    // Apply to app settings (this updates CSS variables globally)
-    if (key === 'primary') updateSettings({ primaryColor: value });
-    if (key === 'secondary') updateSettings({ secondaryColor: value });
-    if (key === 'accent') updateSettings({ accentColor: value });
-    if (key === 'background') updateSettings({ backgroundColor: value });
-    if (key === 'foreground') updateSettings({ foregroundColor: value });
-    if (key === 'muted') updateSettings({ mutedColor: value });
-    if (key === 'destructive') updateSettings({ destructiveColor: value });
+    // Build the settings update object
+    const settingsUpdate: Partial<typeof settings> = {};
+    if (key === 'primary') settingsUpdate.primaryColor = value;
+    if (key === 'secondary') settingsUpdate.secondaryColor = value;
+    if (key === 'accent') settingsUpdate.accentColor = value;
+    if (key === 'background') settingsUpdate.backgroundColor = value;
+    if (key === 'foreground') settingsUpdate.foregroundColor = value;
+    if (key === 'muted') settingsUpdate.mutedColor = value;
+    if (key === 'destructive') settingsUpdate.destructiveColor = value;
 
-    // Refresh preview after a short delay
-    setTimeout(refreshPreview, 300);
+    // Apply to app settings (updates CSS variables globally)
+    updateSettings(settingsUpdate);
+
+    // Instantly sync to iframe preview
+    syncToPreview(settingsUpdate);
   };
 
   const resetColors = () => {
@@ -464,7 +478,8 @@ const SettingsPage = () => {
   const applyPreset = (preset: ThemePreset) => {
     const { colors } = preset;
     setColorSettings(colors);
-    updateSettings({
+
+    const settingsUpdate = {
       primaryColor: colors.primary,
       secondaryColor: colors.secondary,
       accentColor: colors.accent,
@@ -472,9 +487,11 @@ const SettingsPage = () => {
       foregroundColor: colors.foreground,
       mutedColor: colors.muted,
       destructiveColor: colors.destructive,
-    });
+    };
+
+    updateSettings(settingsUpdate);
+    syncToPreview(settingsUpdate);
     toast.success(`Applied "${preset.name}" theme`);
-    setTimeout(refreshPreview, 100);
   };
 
   // Save current colors as a new preset
