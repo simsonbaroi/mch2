@@ -42,7 +42,9 @@ import {
   Clock,
   FileText,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Save,
+  Check
 } from 'lucide-react';
 import { useAppSettings, NavButtonConfig } from '@/contexts/AppSettingsContext';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
@@ -199,6 +201,84 @@ interface CategoryConfig {
   enabled: boolean;
 }
 
+// Theme preset type
+interface ThemePreset {
+  id: string;
+  name: string;
+  isBuiltIn?: boolean;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    foreground: string;
+    muted: string;
+    destructive: string;
+  };
+}
+
+// Built-in presets
+const builtInPresets: ThemePreset[] = [
+  {
+    id: 'mch-green',
+    name: 'MCH Green (Default)',
+    isBuiltIn: true,
+    colors: {
+      primary: '160 84% 39%',
+      secondary: '240 5% 12%',
+      accent: '199 89% 48%',
+      background: '240 10% 4%',
+      foreground: '0 0% 100%',
+      muted: '240 5% 12%',
+      destructive: '0 62% 31%',
+    },
+  },
+  {
+    id: 'ocean-blue',
+    name: 'Ocean Blue',
+    isBuiltIn: true,
+    colors: {
+      primary: '210 90% 50%',
+      secondary: '220 15% 15%',
+      accent: '180 70% 45%',
+      background: '220 15% 6%',
+      foreground: '0 0% 100%',
+      muted: '220 10% 15%',
+      destructive: '0 72% 51%',
+    },
+  },
+  {
+    id: 'royal-purple',
+    name: 'Royal Purple',
+    isBuiltIn: true,
+    colors: {
+      primary: '270 70% 55%',
+      secondary: '260 15% 15%',
+      accent: '320 70% 60%',
+      background: '260 20% 6%',
+      foreground: '0 0% 100%',
+      muted: '260 10% 15%',
+      destructive: '0 72% 51%',
+    },
+  },
+  {
+    id: 'sunset-orange',
+    name: 'Sunset Orange',
+    isBuiltIn: true,
+    colors: {
+      primary: '25 90% 55%',
+      secondary: '20 15% 12%',
+      accent: '45 90% 55%',
+      background: '20 15% 5%',
+      foreground: '0 0% 100%',
+      muted: '20 10% 15%',
+      destructive: '0 72% 51%',
+    },
+  },
+];
+
+const CUSTOM_PRESETS_KEY = 'mch_custom_theme_presets';
+
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { settings, updateSettings, updateNavButton, resetSettings } = useAppSettings();
@@ -211,6 +291,26 @@ const SettingsPage = () => {
   
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'outpatient' | 'inpatient'>('all');
   const [previewKey, setPreviewKey] = useState(0);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  
+  // Load custom presets from localStorage
+  const [customPresets, setCustomPresets] = useState<ThemePreset[]>(() => {
+    try {
+      const saved = localStorage.getItem(CUSTOM_PRESETS_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Save custom presets to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(customPresets));
+  }, [customPresets]);
+
+  const allPresets = [...builtInPresets, ...customPresets];
+  
   const [categories, setCategories] = useState<CategoryConfig[]>(() => {
     const cats = Object.keys(inventory);
     return cats.map(name => ({
@@ -356,31 +456,49 @@ const SettingsPage = () => {
   };
 
   const resetColors = () => {
-    // Reset to dark-mode defaults (then AppSettingsContext will handle :root/.dark switching)
-    const defaults = {
-      primary: '160 84% 39%',
-      secondary: '240 5% 12%',
-      accent: '199 89% 48%',
-      background: '240 10% 4%',
-      foreground: '0 0% 100%',
-      muted: '240 5% 12%',
-      destructive: '0 62% 31%',
-    };
+    // Apply MCH Green (default) preset
+    applyPreset(builtInPresets[0]);
+  };
 
-    setColorSettings(defaults);
+  // Apply a theme preset
+  const applyPreset = (preset: ThemePreset) => {
+    const { colors } = preset;
+    setColorSettings(colors);
     updateSettings({
-      primaryColor: defaults.primary,
-      secondaryColor: defaults.secondary,
-      accentColor: defaults.accent,
-      backgroundColor: defaults.background,
-      foregroundColor: defaults.foreground,
-      mutedColor: defaults.muted,
-      destructiveColor: defaults.destructive,
+      primaryColor: colors.primary,
+      secondaryColor: colors.secondary,
+      accentColor: colors.accent,
+      backgroundColor: colors.background,
+      foregroundColor: colors.foreground,
+      mutedColor: colors.muted,
+      destructiveColor: colors.destructive,
     });
-    toast.success('Colors reset');
-
-    // Keep preview aligned
+    toast.success(`Applied "${preset.name}" theme`);
     setTimeout(refreshPreview, 100);
+  };
+
+  // Save current colors as a new preset
+  const saveCurrentAsPreset = () => {
+    if (!newPresetName.trim()) {
+      toast.error('Please enter a preset name');
+      return;
+    }
+    const newPreset: ThemePreset = {
+      id: `custom-${Date.now()}`,
+      name: newPresetName.trim(),
+      isBuiltIn: false,
+      colors: { ...colorSettings },
+    };
+    setCustomPresets(prev => [...prev, newPreset]);
+    setNewPresetName('');
+    setShowSavePreset(false);
+    toast.success(`Saved "${newPreset.name}" preset`);
+  };
+
+  // Delete a custom preset
+  const deleteCustomPreset = (id: string) => {
+    setCustomPresets(prev => prev.filter(p => p.id !== id));
+    toast.success('Preset deleted');
   };
 
   const filteredCategories = categories.filter(cat => {
@@ -692,19 +810,109 @@ const SettingsPage = () => {
 
         {/* Color Theme */}
         <section className="bg-card border border-border rounded-2xl p-6 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Palette className="w-5 h-5 text-primary" />
               Color Theme
             </h2>
-            <button
-              onClick={resetColors}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset Colors
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSavePreset(!showSavePreset)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                Save Preset
+              </button>
+              <button
+                onClick={resetColors}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset
+              </button>
+            </div>
           </div>
+
+          {/* Theme Presets */}
+          <div className="space-y-3">
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Quick Presets</span>
+            <div className="flex flex-wrap gap-2">
+              {allPresets.map((preset) => (
+                <div key={preset.id} className="relative group">
+                  <button
+                    onClick={() => applyPreset(preset)}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl hover:border-primary transition-all"
+                  >
+                    {/* Color preview dots */}
+                    <div className="flex -space-x-1">
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-background"
+                        style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
+                      />
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-background"
+                        style={{ backgroundColor: `hsl(${preset.colors.accent})` }}
+                      />
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-background"
+                        style={{ backgroundColor: `hsl(${preset.colors.background})` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">{preset.name}</span>
+                    {preset.id === 'mch-green' && (
+                      <Sparkles className="w-3 h-3 text-primary" />
+                    )}
+                  </button>
+                  {/* Delete button for custom presets */}
+                  {!preset.isBuiltIn && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteCustomPreset(preset.id);
+                      }}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Save new preset form */}
+            {showSavePreset && (
+              <div className="flex items-center gap-2 mt-3 p-3 bg-surface-light border border-border rounded-xl">
+                <input
+                  type="text"
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  placeholder="Enter preset name..."
+                  className="flex-1 bg-surface border border-border text-foreground px-3 py-2 rounded-lg outline-none text-sm focus:border-primary"
+                />
+                <button
+                  onClick={saveCurrentAsPreset}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSavePreset(false);
+                    setNewPresetName('');
+                  }}
+                  className="px-3 py-2 text-muted-foreground hover:text-foreground text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Separator */}
+          <div className="border-t border-border" />
+
+          {/* Color Sliders */}
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ColorSlider
