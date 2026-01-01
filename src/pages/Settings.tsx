@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -41,7 +41,8 @@ import {
   Sun,
   Clock,
   FileText,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { useAppSettings, NavButtonConfig } from '@/contexts/AppSettingsContext';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
@@ -206,8 +207,10 @@ const SettingsPage = () => {
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'outpatient' | 'inpatient'>('all');
+  const [previewKey, setPreviewKey] = useState(0);
   const [categories, setCategories] = useState<CategoryConfig[]>(() => {
     const cats = Object.keys(inventory);
     return cats.map(name => ({
@@ -217,6 +220,11 @@ const SettingsPage = () => {
       enabled: true
     }));
   });
+
+  // Debounced preview refresh
+  const refreshPreview = useCallback(() => {
+    setPreviewKey(prev => prev + 1);
+  }, []);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -317,6 +325,9 @@ const SettingsPage = () => {
     if (key === 'primary') updateSettings({ primaryColor: value });
     if (key === 'accent') updateSettings({ accentColor: value });
     if (key === 'background') updateSettings({ backgroundColor: value });
+    
+    // Refresh preview after a short delay
+    setTimeout(refreshPreview, 300);
   };
 
   const resetColors = () => {
@@ -367,7 +378,16 @@ const SettingsPage = () => {
       <div className="flex h-[calc(100vh-65px)]">
         {/* Left: Mobile Preview */}
         <div className="hidden lg:flex w-[400px] flex-shrink-0 bg-surface border-r border-border flex-col items-center justify-center p-6 gap-4 sticky top-[65px]">
-          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Live Mobile Preview</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Live Mobile Preview</span>
+            <button
+              onClick={refreshPreview}
+              className="p-1.5 rounded-lg bg-surface-light border border-border hover:border-primary hover:text-primary transition-all"
+              title="Refresh Preview"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
           <div className="relative">
             {/* Phone Frame */}
             <div className="w-[375px] h-[667px] bg-background rounded-[40px] border-4 border-muted overflow-hidden shadow-2xl relative">
@@ -375,6 +395,8 @@ const SettingsPage = () => {
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-muted rounded-b-2xl z-10" />
               {/* Screen */}
               <iframe
+                ref={iframeRef}
+                key={previewKey}
                 src="/?preview=true"
                 className="w-full h-full border-0"
                 title="Mobile Preview"
