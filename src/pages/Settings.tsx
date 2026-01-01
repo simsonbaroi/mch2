@@ -306,20 +306,43 @@ const SettingsPage = () => {
     theme: 'Theme',
   };
 
+  // Track swipe direction for animation
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+
   const navigateSection = useCallback((direction: 'next' | 'prev') => {
     const currentIndex = sections.indexOf(activeSection);
     if (direction === 'next' && currentIndex < sections.length - 1) {
+      setSwipeDirection('left');
       setActiveSection(sections[currentIndex + 1]);
     } else if (direction === 'prev' && currentIndex > 0) {
+      setSwipeDirection('right');
       setActiveSection(sections[currentIndex - 1]);
     }
   }, [activeSection]);
+
+  // Reset swipe direction after animation completes
+  useEffect(() => {
+    if (swipeDirection) {
+      const timer = setTimeout(() => setSwipeDirection(null), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [swipeDirection, activeSection]);
 
   const { touchHandlers } = useTouchGestures({
     onSwipeLeft: () => navigateSection('next'),
     onSwipeRight: () => navigateSection('prev'),
     threshold: 50,
   });
+
+  // Animation classes for section transitions
+  const getSectionAnimationClass = (sectionName: Section) => {
+    if (!isMobile) return '';
+    if (activeSection !== sectionName) return 'hidden';
+    if (!swipeDirection) return 'animate-fade-in';
+    return swipeDirection === 'left' 
+      ? 'animate-slide-in-from-right' 
+      : 'animate-slide-in-from-left';
+  };
   
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'outpatient' | 'inpatient'>('all');
   const [previewKey, setPreviewKey] = useState(0);
@@ -650,7 +673,7 @@ const SettingsPage = () => {
         )}
 
         {/* App Information */}
-        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'info' ? 'hidden' : ''}`}>
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${getSectionAnimationClass('info')}`}>
           <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             <Image className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             App Information
@@ -738,7 +761,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Navigation Buttons */}
-        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'navigation' ? 'hidden' : ''}`}>
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${getSectionAnimationClass('navigation')}`}>
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -805,7 +828,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Categories */}
-        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'categories' ? 'hidden' : ''}`}>
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${getSectionAnimationClass('categories')}`}>
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -914,7 +937,7 @@ const SettingsPage = () => {
         </section>
 
         {/* Color Theme */}
-        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${isMobile && activeSection !== 'theme' ? 'hidden' : ''}`}>
+        <section className={`bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 ${getSectionAnimationClass('theme')}`}>
           <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-3">
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
               <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
