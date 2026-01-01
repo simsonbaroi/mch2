@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
 
 interface CategoryCarouselProps {
   categoryName: string;
@@ -15,8 +16,17 @@ export const CategoryCarousel = ({
   onNext,
   onGridView,
 }: CategoryCarouselProps) => {
+  const { touchHandlers } = useTouchGestures({
+    onSwipeLeft: onNext,
+    onSwipeRight: onPrev,
+    threshold: 50,
+  });
+
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-md transition-all duration-300 animate-scale-in">
+    <div 
+      className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-md transition-all duration-300 animate-scale-in"
+      {...touchHandlers}
+    >
       <div className="flex items-center justify-between gap-4">
         <button
           onClick={onPrev}
