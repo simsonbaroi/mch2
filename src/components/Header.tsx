@@ -49,8 +49,8 @@ export const Header = () => {
         
         {/* Desktop Controls */}
         <div className="hidden md:flex items-center gap-3">
-          {/* User Info */}
-          {user && (
+          {/* User Info - hidden in preview mode */}
+          {user && !isPreviewMode && (
             <div className="flex items-center gap-2 bg-surface-light border border-border rounded-lg px-3 py-2">
               <User className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-foreground font-medium truncate max-w-[120px]">
