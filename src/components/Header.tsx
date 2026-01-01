@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Microscope, Settings, Sun, Moon, LogOut, User, Menu, X } from 'lucide-react';
 import { useClock } from '@/hooks/useClock';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
@@ -8,9 +8,13 @@ import { useState } from 'react';
 export const Header = () => {
   const time = useClock();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { settings, updateSettings } = useAppSettings();
   const { user, role, signOut } = useLocalAuthContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Check if in preview mode (embedded in settings page)
+  const isPreviewMode = searchParams.get('preview') === 'true';
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,14 +77,16 @@ export const Header = () => {
             )}
           </button>
 
-          {/* Settings Button */}
-          <button
-            onClick={() => navigate('/settings')}
-            className="bg-surface-light border border-border w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+          {/* Settings Button - hidden in preview mode */}
+          {!isPreviewMode && (
+            <button
+              onClick={() => navigate('/settings')}
+              className="bg-surface-light border border-border w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Sign Out Button */}
           <button
@@ -163,17 +169,20 @@ export const Header = () => {
                   <span className="font-medium">{settings.isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                 </button>
                 
-                <button
-                  onClick={() => {
-                    navigate('/settings');
-                    setIsMobileMenuOpen(false);
-                    if (navigator.vibrate) navigator.vibrate(10);
-                  }}
-                  className="w-full bg-surface-light border border-border py-4 px-4 rounded-xl flex items-center gap-4 text-foreground touch-target touch-feedback"
-                >
-                  <Settings className="w-5 h-5 text-muted-foreground" />
-                  <span className="font-medium">Settings</span>
-                </button>
+                {/* Settings button - hidden in preview mode */}
+                {!isPreviewMode && (
+                  <button
+                    onClick={() => {
+                      navigate('/settings');
+                      setIsMobileMenuOpen(false);
+                      if (navigator.vibrate) navigator.vibrate(10);
+                    }}
+                    className="w-full bg-surface-light border border-border py-4 px-4 rounded-xl flex items-center gap-4 text-foreground touch-target touch-feedback"
+                  >
+                    <Settings className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-medium">Settings</span>
+                  </button>
+                )}
                 
                 <button
                   onClick={() => {
