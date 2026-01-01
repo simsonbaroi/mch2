@@ -49,7 +49,6 @@ export const Header = () => {
         
         {/* Desktop Controls */}
         <div className="hidden md:flex items-center gap-3">
-
           {/* Dark Mode Toggle */}
           <button
             onClick={() => updateSettings({ isDarkMode: !settings.isDarkMode })}
