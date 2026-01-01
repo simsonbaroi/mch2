@@ -13,31 +13,46 @@ export interface AppSettings {
   appSubtitle: string;
   logoUrl: string | null;
   faviconUrl: string | null;
-  primaryColor: string;
-  accentColor: string;
+
+  // Theme tokens (HSL strings: "H S% L%")
   backgroundColor: string;
+  foregroundColor: string;
   cardColor: string;
   borderColor: string;
+  primaryColor: string;
+  secondaryColor: string;
+  mutedColor: string;
+  accentColor: string;
+  destructiveColor: string;
+
   isDarkMode: boolean;
   navButtons: NavButtonConfig[];
 }
 
 // Light mode default settings
 const lightModeColors = {
-  primaryColor: '160 70% 36%',
-  accentColor: '199 80% 45%',
   backgroundColor: '0 0% 97%',
+  foregroundColor: '220 20% 15%',
   cardColor: '0 0% 100%',
   borderColor: '220 10% 82%',
+  primaryColor: '160 70% 36%',
+  secondaryColor: '220 10% 92%',
+  mutedColor: '220 10% 92%',
+  accentColor: '199 80% 45%',
+  destructiveColor: '0 72% 51%',
 };
 
-// Dark mode default settings  
+// Dark mode default settings
 const darkModeColors = {
-  primaryColor: '160 84% 39%',
-  accentColor: '199 89% 48%',
   backgroundColor: '240 10% 4%',
+  foregroundColor: '0 0% 100%',
   cardColor: '240 6% 7%',
   borderColor: '240 4% 16%',
+  primaryColor: '160 84% 39%',
+  secondaryColor: '240 5% 12%',
+  mutedColor: '240 5% 12%',
+  accentColor: '199 89% 48%',
+  destructiveColor: '0 62% 31%',
 };
 
 const defaultSettings: AppSettings = {
@@ -120,21 +135,34 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     // Otherwise, let the CSS :root and .dark classes handle theming
     const root = document.documentElement;
     const currentModeColors = settings.isDarkMode ? darkModeColors : lightModeColors;
-    
-    // Only override if user has customized (different from defaults)
-    if (settings.primaryColor !== currentModeColors.primaryColor) {
-      root.style.setProperty('--primary', settings.primaryColor);
-      root.style.setProperty('--ring', settings.primaryColor);
-    } else {
-      root.style.removeProperty('--primary');
-      root.style.removeProperty('--ring');
-    }
-    
-    if (settings.accentColor !== currentModeColors.accentColor) {
-      root.style.setProperty('--accent-blue', settings.accentColor);
-    } else {
-      root.style.removeProperty('--accent-blue');
-    }
+
+    const applyVar = (cssVar: string, value: string, defaultValue: string) => {
+      if (value !== defaultValue) root.style.setProperty(cssVar, value);
+      else root.style.removeProperty(cssVar);
+    };
+
+    // Core shadcn/tailwind tokens
+    applyVar('--background', settings.backgroundColor, currentModeColors.backgroundColor);
+    applyVar('--foreground', settings.foregroundColor, currentModeColors.foregroundColor);
+    applyVar('--card', settings.cardColor, currentModeColors.cardColor);
+    applyVar('--border', settings.borderColor, currentModeColors.borderColor);
+
+    applyVar('--primary', settings.primaryColor, currentModeColors.primaryColor);
+    applyVar('--ring', settings.primaryColor, currentModeColors.primaryColor);
+
+    applyVar('--secondary', settings.secondaryColor, currentModeColors.secondaryColor);
+    applyVar('--muted', settings.mutedColor, currentModeColors.mutedColor);
+
+    // Make "Accent" actually drive Tailwind's `accent` token (and keep legacy `accent-blue` usage working)
+    applyVar('--accent', settings.accentColor, currentModeColors.accentColor);
+    applyVar('--accent-blue', settings.accentColor, currentModeColors.accentColor);
+
+    applyVar('--destructive', settings.destructiveColor, currentModeColors.destructiveColor);
+
+    // App-specific tokens used throughout the UI
+    applyVar('--surface', settings.cardColor, currentModeColors.cardColor);
+    applyVar('--surface-light', settings.secondaryColor, currentModeColors.secondaryColor);
+    applyVar('--nav-bg', settings.backgroundColor, currentModeColors.backgroundColor);
     
     // Update favicon if set
     if (settings.faviconUrl) {

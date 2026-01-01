@@ -245,16 +245,37 @@ const SettingsPage = () => {
     return null;
   }
 
-  // Extended color settings
+  // Theme colors (stored in app settings)
   const [colorSettings, setColorSettings] = useState({
     primary: settings.primaryColor,
-    secondary: '160 30% 20%',
+    secondary: settings.secondaryColor,
     accent: settings.accentColor,
     background: settings.backgroundColor,
-    foreground: '160 20% 95%',
-    muted: '180 15% 15%',
-    destructive: '0 62% 50%',
+    foreground: settings.foregroundColor,
+    muted: settings.mutedColor,
+    destructive: settings.destructiveColor,
   });
+
+  // Keep local sliders in sync if theme changes elsewhere (e.g. toggle dark mode)
+  useEffect(() => {
+    setColorSettings({
+      primary: settings.primaryColor,
+      secondary: settings.secondaryColor,
+      accent: settings.accentColor,
+      background: settings.backgroundColor,
+      foreground: settings.foregroundColor,
+      muted: settings.mutedColor,
+      destructive: settings.destructiveColor,
+    });
+  }, [
+    settings.primaryColor,
+    settings.secondaryColor,
+    settings.accentColor,
+    settings.backgroundColor,
+    settings.foregroundColor,
+    settings.mutedColor,
+    settings.destructiveColor,
+  ]);
 
   const handleFileUpload = (type: 'logo' | 'favicon', file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -320,33 +341,46 @@ const SettingsPage = () => {
 
   const handleColorChange = (key: keyof typeof colorSettings, value: string) => {
     setColorSettings(prev => ({ ...prev, [key]: value }));
-    
-    // Apply to app settings
+
+    // Apply to app settings (this updates CSS variables globally)
     if (key === 'primary') updateSettings({ primaryColor: value });
+    if (key === 'secondary') updateSettings({ secondaryColor: value });
     if (key === 'accent') updateSettings({ accentColor: value });
     if (key === 'background') updateSettings({ backgroundColor: value });
-    
+    if (key === 'foreground') updateSettings({ foregroundColor: value });
+    if (key === 'muted') updateSettings({ mutedColor: value });
+    if (key === 'destructive') updateSettings({ destructiveColor: value });
+
     // Refresh preview after a short delay
     setTimeout(refreshPreview, 300);
   };
 
   const resetColors = () => {
+    // Reset to dark-mode defaults (then AppSettingsContext will handle :root/.dark switching)
     const defaults = {
       primary: '160 84% 39%',
-      secondary: '160 30% 20%',
-      accent: '160 60% 45%',
-      background: '180 20% 8%',
-      foreground: '160 20% 95%',
-      muted: '180 15% 15%',
-      destructive: '0 62% 50%',
+      secondary: '240 5% 12%',
+      accent: '199 89% 48%',
+      background: '240 10% 4%',
+      foreground: '0 0% 100%',
+      muted: '240 5% 12%',
+      destructive: '0 62% 31%',
     };
+
     setColorSettings(defaults);
     updateSettings({
       primaryColor: defaults.primary,
+      secondaryColor: defaults.secondary,
       accentColor: defaults.accent,
-      backgroundColor: defaults.background
+      backgroundColor: defaults.background,
+      foregroundColor: defaults.foreground,
+      mutedColor: defaults.muted,
+      destructiveColor: defaults.destructive,
     });
     toast.success('Colors reset');
+
+    // Keep preview aligned
+    setTimeout(refreshPreview, 100);
   };
 
   const filteredCategories = categories.filter(cat => {
