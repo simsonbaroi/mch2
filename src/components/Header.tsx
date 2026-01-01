@@ -49,20 +49,6 @@ export const Header = () => {
         
         {/* Desktop Controls */}
         <div className="hidden md:flex items-center gap-3">
-          {/* User Info - hidden in preview mode */}
-          {user && !isPreviewMode && (
-            <div className="flex items-center gap-2 bg-surface-light border border-border rounded-lg px-3 py-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-foreground font-medium truncate max-w-[120px]">
-                {user.email}
-              </span>
-              {role && (
-                <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded border ${getRoleBadgeColor()}`}>
-                  {role.replace('_', ' ')}
-                </span>
-              )}
-            </div>
-          )}
 
           {/* Dark Mode Toggle */}
           <button
