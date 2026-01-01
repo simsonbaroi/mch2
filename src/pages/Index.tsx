@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BillingProvider, useBilling } from '@/contexts/BillingContext';
+import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
 import { HomeView } from '@/components/views/HomeView';
@@ -12,7 +12,7 @@ import { PricingView } from '@/components/views/PricingView';
 import { Loader2 } from 'lucide-react';
 
 const MainContent = () => {
-  const { currentView, isLoading } = useBilling();
+  const { currentView, isLoading } = useLocalBilling();
   const { settings } = useAppSettings();
 
   if (isLoading) {
@@ -41,7 +41,7 @@ const MainContent = () => {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuthContext();
+  const { user, isLoading } = useLocalAuthContext();
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -63,7 +63,7 @@ const Index = () => {
   }
 
   return (
-    <BillingProvider>
+    <LocalBillingProvider>
       <div className="min-h-screen bg-background overflow-x-hidden">
         <Header />
         <Navigation />
@@ -71,7 +71,7 @@ const Index = () => {
           <MainContent />
         </main>
       </div>
-    </BillingProvider>
+    </LocalBillingProvider>
   );
 };
 

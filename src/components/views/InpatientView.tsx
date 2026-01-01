@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, UserCircle } from 'lucide-react';
-import { useBilling } from '@/contexts/BillingContext';
+import { useLocalBilling } from '@/contexts/LocalBillingContext';
 import { InventoryItem, BillItem } from '@/types/billing';
 import { CategoryCard } from '@/components/CategoryCard';
 import { CategoryCarousel } from '@/components/CategoryCarousel';
@@ -18,7 +18,7 @@ export const InpatientView = () => {
     bill,
     addToBill,
     removeFromBill,
-  } = useBilling();
+  } = useLocalBilling();
 
   const [viewMode, setViewMode] = useState<'grid' | 'carousel'>('grid');
   const [searchQuery, setSearchQuery] = useState('');

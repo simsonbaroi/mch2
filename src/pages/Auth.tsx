@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
+import { Loader2, Mail, Lock, User, Info } from 'lucide-react';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -10,7 +10,7 @@ const nameSchema = z.string().min(2, 'Name must be at least 2 characters').max(1
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, isLoading, signIn, signUp } = useAuthContext();
+  const { user, isLoading, signIn, signUp } = useLocalAuthContext();
   
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -93,6 +93,18 @@ const Auth = () => {
             <p className="text-muted-foreground mt-2">
               {isSignUp ? 'Sign up to access the billing system' : 'Sign in to continue'}
             </p>
+          </div>
+
+          {/* Default credentials hint */}
+          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-semibold text-foreground">Default Admin Login:</p>
+                <p className="text-muted-foreground">Email: admin@hospital.local</p>
+                <p className="text-muted-foreground">Password: admin123</p>
+              </div>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -182,6 +194,14 @@ const Auth = () => {
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
           </div>
+        </div>
+
+        {/* Local mode badge */}
+        <div className="text-center mt-4">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/20 text-accent-foreground rounded-full text-xs font-medium">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            Running Locally - No Internet Required
+          </span>
         </div>
       </div>
     </div>

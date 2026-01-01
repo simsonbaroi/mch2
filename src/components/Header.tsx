@@ -2,14 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { Microscope, Settings, Sun, Moon, LogOut, User, Menu, X } from 'lucide-react';
 import { useClock } from '@/hooks/useClock';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
 import { useState } from 'react';
 
 export const Header = () => {
   const time = useClock();
   const navigate = useNavigate();
   const { settings, updateSettings } = useAppSettings();
-  const { user, role, signOut } = useAuthContext();
+  const { user, role, signOut } = useLocalAuthContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {

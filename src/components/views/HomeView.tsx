@@ -1,9 +1,9 @@
 import { ShieldCheck } from 'lucide-react';
-import { useBilling } from '@/contexts/BillingContext';
+import { useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 
 export const HomeView = () => {
-  const { setCurrentView } = useBilling();
+  const { setCurrentView } = useLocalBilling();
   const { settings } = useAppSettings();
 
   return (

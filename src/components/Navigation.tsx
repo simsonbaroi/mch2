@@ -1,5 +1,5 @@
 import { Home, UserCheck, BedDouble, Tags } from 'lucide-react';
-import { useBilling } from '@/contexts/BillingContext';
+import { useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { ViewType } from '@/types/billing';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export const Navigation = () => {
-  const { currentView, setCurrentView } = useBilling();
+  const { currentView, setCurrentView } = useLocalBilling();
   const { settings } = useAppSettings();
   const time = useClock();
 

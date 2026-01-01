@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, Plus, Download, Upload, Database, RefreshCw, Loader2, Lock } from 'lucide-react';
-import { useBilling } from '@/contexts/BillingContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useLocalBilling } from '@/contexts/LocalBillingContext';
+import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
 import { InventoryItem } from '@/types/billing';
 import { ItemEntry } from '@/components/ItemEntry';
 import { toast } from 'sonner';
@@ -25,8 +25,8 @@ export const PricingView = () => {
     bulkImport,
     exportData,
     seedFromJson,
-  } = useBilling();
-  const { canEdit, isAdmin } = useAuthContext();
+  } = useLocalBilling();
+  const { canEdit, isAdmin } = useLocalAuthContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
