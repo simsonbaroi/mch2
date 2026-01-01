@@ -75,9 +75,9 @@ export const useLocalAuth = () => {
       // Create default admin user
       const defaultAdmin: StoredUser = {
         id: 'admin-1',
-        email: 'admin@hospital.local',
-        password: 'admin123',
-        fullName: 'Administrator',
+        email: 'admin@mch.local',
+        password: 'Cash1234',
+        fullName: 'MCH Admin',
         role: 'admin',
       };
       saveUsers([defaultAdmin]);
