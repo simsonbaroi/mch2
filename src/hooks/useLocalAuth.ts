@@ -68,19 +68,29 @@ export const useLocalAuth = () => {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
   };
 
-  // Initialize with default admin if no users exist
+  // Initialize with default admin if no users exist or update default admin credentials
   useEffect(() => {
     const users = getStoredUsers();
+    const defaultAdmin: StoredUser = {
+      id: 'admin-1',
+      email: 'admin@mch.local',
+      password: 'Cash1234',
+      fullName: 'MCH Admin',
+      role: 'admin',
+    };
+    
     if (users.length === 0) {
       // Create default admin user
-      const defaultAdmin: StoredUser = {
-        id: 'admin-1',
-        email: 'admin@mch.local',
-        password: 'Cash1234',
-        fullName: 'MCH Admin',
-        role: 'admin',
-      };
       saveUsers([defaultAdmin]);
+    } else {
+      // Update existing default admin if credentials changed
+      const existingAdmin = users.find(u => u.id === 'admin-1');
+      if (existingAdmin && (existingAdmin.email !== defaultAdmin.email || existingAdmin.password !== defaultAdmin.password)) {
+        const updatedUsers = users.map(u => 
+          u.id === 'admin-1' ? { ...u, email: defaultAdmin.email, password: defaultAdmin.password, fullName: defaultAdmin.fullName } : u
+        );
+        saveUsers(updatedUsers);
+      }
     }
 
     // Check for existing session
