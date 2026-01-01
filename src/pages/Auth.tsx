@@ -13,7 +13,7 @@ const Auth = () => {
   const { user, isLoading, signIn, signUp } = useLocalAuthContext();
   
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('admin@mch.local');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,8 +101,8 @@ const Auth = () => {
               <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div className="text-sm">
                 <p className="font-semibold text-foreground">Default Admin Login:</p>
-                <p className="text-muted-foreground">Email: admin@hospital.local</p>
-                <p className="text-muted-foreground">Password: admin123</p>
+                <p className="text-muted-foreground">Email: admin@mch.local</p>
+                <p className="text-muted-foreground">Password: Cash1234</p>
               </div>
             </div>
           </div>
