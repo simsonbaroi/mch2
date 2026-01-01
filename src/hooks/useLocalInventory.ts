@@ -1,6 +1,14 @@
+/**
+ * LOCAL INVENTORY MANAGEMENT HOOK
+ * 
+ * Stores all inventory data in browser localStorage for offline operation.
+ * Includes input validation for defense in depth.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { InventoryItem } from '@/types/billing';
 import { toast } from 'sonner';
+import { validateItemName, validatePrice, validateInventoryImport } from '@/lib/validation';
 
 const STORAGE_KEY = 'mch_inventory';
 
@@ -42,21 +50,37 @@ export const useLocalInventory = () => {
   // Generate unique ID
   const generateId = () => Date.now() + Math.floor(Math.random() * 1000);
 
-  // Add item
+  // Add item with validation
   const addItem = useCallback((item: Omit<InventoryItem, 'id'>) => {
     setIsSyncing(true);
     try {
+      // Server-side validation
+      const nameResult = validateItemName(item.name);
+      const priceResult = validatePrice(String(item.price));
+      
+      if (!nameResult.valid) {
+        toast.error(nameResult.error || 'Invalid item name');
+        return null;
+      }
+      
+      if (!priceResult.valid) {
+        toast.error(priceResult.error || 'Invalid price');
+        return null;
+      }
+
       const newId = generateId();
       const cat = item.category || 'General';
+      const validatedName = nameResult.value || item.name.trim();
+      const validatedPrice = priceResult.value || 0;
       
       setInventory(prev => {
         const newInv = { ...prev };
         if (!newInv[cat]) newInv[cat] = [];
         newInv[cat].push({
           id: newId,
-          name: item.name,
+          name: validatedName,
           strength: item.strength,
-          price: item.price,
+          price: validatedPrice,
           type: item.type,
           category: cat,
         });
@@ -75,10 +99,30 @@ export const useLocalInventory = () => {
     }
   }, [saveToStorage]);
 
-  // Update item
+  // Update item with validation
   const updateItem = useCallback((id: number, updates: Partial<InventoryItem>, oldCategory?: string) => {
     setIsSyncing(true);
     try {
+      // Validate if name is being updated
+      if (updates.name !== undefined) {
+        const nameResult = validateItemName(updates.name);
+        if (!nameResult.valid) {
+          toast.error(nameResult.error || 'Invalid item name');
+          return false;
+        }
+        updates.name = nameResult.value || updates.name.trim();
+      }
+      
+      // Validate if price is being updated
+      if (updates.price !== undefined) {
+        const priceResult = validatePrice(String(updates.price));
+        if (!priceResult.valid) {
+          toast.error(priceResult.error || 'Invalid price');
+          return false;
+        }
+        updates.price = priceResult.value || 0;
+      }
+
       setInventory(prev => {
         const newInv = { ...prev };
         const newCat = updates.category || 'General';
@@ -151,10 +195,17 @@ export const useLocalInventory = () => {
     }
   }, [saveToStorage]);
 
-  // Bulk import
+  // Bulk import with validation
   const bulkImport = useCallback((items: InventoryItem[]) => {
     setIsSyncing(true);
     try {
+      // Validate imported data
+      const validationResult = validateInventoryImport(items);
+      if (!validationResult.valid) {
+        toast.error(validationResult.error || 'Invalid import data');
+        return false;
+      }
+
       const inv: Record<string, InventoryItem[]> = {};
       items.forEach((item, index) => {
         const cat = item.category || 'General';
