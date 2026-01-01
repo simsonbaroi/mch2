@@ -67,6 +67,7 @@ const defaultSettings: AppSettings = {
     { id: 'outpatient', label: 'OUTPATIENT', icon: 'UserCheck', visible: true },
     { id: 'inpatient', label: 'INPATIENT', icon: 'BedDouble', visible: true },
     { id: 'pricing', label: 'PRICING', icon: 'Tags', visible: true },
+    { id: 'patients', label: 'PATIENTS', icon: 'Users', visible: true },
   ],
 };
 
