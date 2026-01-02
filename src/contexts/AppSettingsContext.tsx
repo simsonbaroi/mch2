@@ -189,7 +189,18 @@ export const AppSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, [settings, isLoaded]);
 
   const updateSettings = (updates: Partial<AppSettings>) => {
-    setSettings(prev => ({ ...prev, ...updates }));
+    setSettings(prev => {
+      // When toggling dark mode, also switch color values to the new mode's defaults
+      if ('isDarkMode' in updates && updates.isDarkMode !== prev.isDarkMode) {
+        const newModeColors = updates.isDarkMode ? darkModeColors : lightModeColors;
+        return {
+          ...prev,
+          ...updates,
+          ...newModeColors, // Apply the new mode's default colors
+        };
+      }
+      return { ...prev, ...updates };
+    });
   };
 
   const updateNavButton = (id: string, updates: Partial<NavButtonConfig>) => {
