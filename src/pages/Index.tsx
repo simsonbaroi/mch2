@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LocalBillingProvider, useLocalBilling } from '@/contexts/LocalBillingContext';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useLocalAuthContext } from '@/contexts/LocalAuthContext';
-import { Header } from '@/components/Header';
-import { Navigation } from '@/components/Navigation';
+import { AppSidebar } from '@/components/AppSidebar';
 import { HomeView } from '@/components/views/HomeView';
 import { OutpatientView } from '@/components/views/OutpatientView';
 import { InpatientView } from '@/components/views/InpatientView';
@@ -12,8 +11,9 @@ import { PricingView } from '@/components/views/PricingView';
 import { PatientsView } from '@/components/views/PatientsView';
 import { PullToRefreshIndicator } from '@/components/mobile/PullToRefreshIndicator';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 const MainContent = () => {
   const { currentView, isLoading, refreshData } = useLocalBilling();
@@ -73,6 +73,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isLoading } = useLocalAuthContext();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Check if this is a preview mode (embedded iframe in settings)
   const isPreviewMode = searchParams.get('preview') === 'true';
@@ -106,12 +107,43 @@ const Index = () => {
 
   return (
     <LocalBillingProvider>
-      <div className="min-h-screen bg-background overflow-x-hidden">
-        <Header />
-        <Navigation />
-        <main className="max-w-7xl mx-auto px-3 sm:px-4 pb-safe">
-          <MainContent />
-        </main>
+      <div className="min-h-screen bg-background flex w-full">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <AppSidebar />
+        </div>
+
+        {/* Mobile Sidebar Overlay */}
+        {isMobileSidebarOpen && (
+          <>
+            <div 
+              className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-fade-in"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+            <div className="md:hidden fixed top-0 left-0 bottom-0 z-50 animate-slide-in-right">
+              <AppSidebar />
+            </div>
+          </>
+        )}
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+          {/* Mobile Header */}
+          <header className="md:hidden bg-background border-b border-border sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-foreground"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-base font-bold">MCH Billing</h1>
+            <div className="w-10" /> {/* Spacer for centering */}
+          </header>
+
+          <main className="flex-1 p-4 sm:p-6">
+            <MainContent />
+          </main>
+        </div>
       </div>
     </LocalBillingProvider>
   );
